@@ -1,0 +1,4 @@
+Emoji PNGs rendered from Twemoji (https://github.com/jdecked/twemoji), graphics licensed CC-BY 4.0
+(https://creativecommons.org/licenses/by/4.0/). Copyright Twitter, Inc and other contributors.
+Files: 1f525 (fire), 2615 (hot beverage), 26a1 (high voltage), 1f3d4 (snow-capped mountain).
+When you publish a video using these, credit "Emoji graphics: Twemoji, CC-BY 4.0" where practical.

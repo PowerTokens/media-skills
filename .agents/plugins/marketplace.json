@@ -1,0 +1,12 @@
+{
+  "name": "powertokens",
+  "interface": { "displayName": "PowerTokens" },
+  "plugins": [
+    {
+      "name": "powertokens-media",
+      "source": { "source": "local", "path": "./plugins/powertokens-media" },
+      "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
+      "category": "Productivity"
+    }
+  ]
+}

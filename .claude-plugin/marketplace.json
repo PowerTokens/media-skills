@@ -1,0 +1,15 @@
+{
+  "name": "powertokens",
+  "description": "PowerTokens skills for Claude Code: video, image and speech generation.",
+  "owner": { "name": "PowerTokens", "url": "https://powertokens.ai" },
+  "plugins": [
+    {
+      "name": "powertokens-media",
+      "source": "./plugins/powertokens-media",
+      "description": "Video (Seedance, Wan, Kling), images (Seedream) and speech (MiniMax) via PowerTokens.",
+      "version": "0.1.0",
+      "category": "media",
+      "homepage": "https://github.com/PowerTokens/media-skills"
+    }
+  ]
+}

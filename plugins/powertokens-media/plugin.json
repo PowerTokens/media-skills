@@ -1,0 +1,27 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "powertokens-media",
+  "version": "0.1.0",
+  "description": "Generate video (Seedance, Wan, Kling), images (Seedream) and speech (MiniMax) from your coding agent with one PowerTokens account.",
+  "author": { "name": "PowerTokens", "url": "https://powertokens.ai" },
+  "homepage": "https://github.com/PowerTokens/media-skills",
+  "repository": "https://github.com/PowerTokens/media-skills",
+  "license": "MIT",
+  "keywords": ["video-generation", "image-generation", "text-to-speech", "seedance", "wan", "kling", "seedream", "minimax", "agent-skills"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "PowerTokens Media",
+        "shortDescription": "Make videos, images and voiceovers with Seedance, Wan, Kling, Seedream and MiniMax",
+        "longDescription": "Skills that let Codex generate text-to-video, image-to-video, text-to-image and text-to-speech through the PowerTokens API, saving files to ./outputs. Sign in once in the browser or use a PowerTokens API key.",
+        "developerName": "PowerTokens",
+        "category": "Productivity",
+        "websiteURL": "https://powertokens.ai",
+        "defaultPrompt": [
+          "Make a 5-second vertical video of iced coffee being poured, cinematic",
+          "Turn product.png into an 8-second 9:16 ad clip with a voiceover"
+        ]
+      }
+    }
+  }
+}

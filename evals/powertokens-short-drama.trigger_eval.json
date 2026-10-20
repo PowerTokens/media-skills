@@ -1,0 +1,14 @@
+[
+ {
+  "query": "make episode 1 of a vertical micro drama about a time-travel phone",
+  "should_trigger": true
+ },
+ {
+  "query": "keep the same characters across these story shots",
+  "should_trigger": true
+ },
+ {
+  "query": "write a novel chapter",
+  "should_trigger": false
+ }
+]

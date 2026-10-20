@@ -1,0 +1,14 @@
+[
+ {
+  "query": "my seedance video morphs the face between shots, how do I fix the prompt",
+  "should_trigger": true
+ },
+ {
+  "query": "write a cinematic kling prompt for a watch reveal",
+  "should_trigger": true
+ },
+ {
+  "query": "write a prompt for a chatbot system message",
+  "should_trigger": false
+ }
+]

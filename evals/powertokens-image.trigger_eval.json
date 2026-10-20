@@ -1,0 +1,18 @@
+[
+ {
+  "query": "create a poster image of a cyberpunk market with seedream",
+  "should_trigger": true
+ },
+ {
+  "query": "generate a product photo of my perfume bottle on black stone",
+  "should_trigger": true
+ },
+ {
+  "query": "resize this png to 512px",
+  "should_trigger": false
+ },
+ {
+  "query": "explain how diffusion models work",
+  "should_trigger": false
+ }
+]

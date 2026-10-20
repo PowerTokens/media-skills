@@ -1,0 +1,22 @@
+[
+ {
+  "query": "make a 5 second clip of a red fox running through snow with seedance",
+  "should_trigger": true
+ },
+ {
+  "query": "animate this product.png into a short video",
+  "should_trigger": true
+ },
+ {
+  "query": "generate b-roll of a city at night, vertical, using wan",
+  "should_trigger": true
+ },
+ {
+  "query": "write a python function to trim an mp4",
+  "should_trigger": false
+ },
+ {
+  "query": "summarize this video transcript",
+  "should_trigger": false
+ }
+]

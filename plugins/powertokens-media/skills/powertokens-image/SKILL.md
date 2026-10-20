@@ -4,7 +4,7 @@ description: Generate images from text, or edit and restyle images from referenc
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # PowerTokens image
@@ -45,3 +45,9 @@ Default model `seedream-4-5-251128`; others: `seedream-5-0-260128`, `seedream-5-
 Prompt tips: subject, setting, composition, lighting, style, and any exact text in quotes. Keep it under ~600 English words.
 
 These images make good first frames for the `powertokens-video` skill (`video.py generate -i <image>`).
+
+## Related skills
+
+- `powertokens-model-routing` — which model to use and what it costs
+- `powertokens-prompting` — prompt structure, camera language, failure fixes
+- `powertokens-pipeline` — more than one clip, storyboards, final assembly

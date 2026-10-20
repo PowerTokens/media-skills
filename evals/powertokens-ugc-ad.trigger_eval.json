@@ -1,0 +1,14 @@
+[
+ {
+  "query": "make a ugc style testimonial ad for my serum",
+  "should_trigger": true
+ },
+ {
+  "query": "creator style unboxing video for my headphones",
+  "should_trigger": true
+ },
+ {
+  "query": "analyze my tiktok follower stats",
+  "should_trigger": false
+ }
+]

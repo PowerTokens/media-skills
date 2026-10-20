@@ -14,14 +14,32 @@ You ask in plain language; the agent picks the skill, calls the API, waits for t
 
 ## Skills
 
+**Core (one call each)**
 | Skill | What it does |
 |---|---|
-| `powertokens-video` | Text-to-video and image-to-video; submits, polls, downloads the MP4; resume without paying twice |
-| `powertokens-image` | Text-to-image and reference-image edits (Seedream) |
-| `powertokens-speech` | Text-to-speech / voiceover (MiniMax speech) |
-| `powertokens-ad-video` | Workflow: product image + copy → vertical ad clip + voiceover |
+| `powertokens-video` | Text-to-video, image-to-video, reference images; submit, poll, download; resume without paying twice |
+| `powertokens-image` | Text-to-image and reference edits (Seedream) |
+| `powertokens-speech` | Text-to-speech / voiceover (MiniMax) |
 
-Scripts are plain Python 3.8+ standard library. Nothing to `pip install`.
+**Know-how**
+| Skill | What it does |
+|---|---|
+| `powertokens-model-routing` | Which model for which job: limits, list prices, sources |
+| `powertokens-prompting` | Shot formula, camera language, timing (1–3 s cuts), per-family notes, failure fixes |
+
+**Production**
+| Skill | What it does |
+|---|---|
+| `powertokens-pipeline` | JSON shot list → keyframes → clips → voiceover → assembled MP4 with captions; estimate + approval first; resume |
+| `powertokens-product-ad` | Product photo → vertical ad (script, storyboard, keyframes, i2v, VO, captions) |
+| `powertokens-ugc-ad` | UGC / talking-head style ads with a consistent fictional persona |
+| `powertokens-short-drama` | Multi-shot episodes with consistent characters via reference images |
+| `powertokens-social-variants` | 9:16 / 1:1 / 16:9 variants, hook A/B tests, cut-downs |
+| `powertokens-bilingual-voiceover` | English + Chinese voiceover versions of the same video |
+
+Scripts are plain Python 3.8+ standard library. Nothing to `pip install`. Final assembly uses `ffmpeg` if installed.
+
+Paid steps always show an estimate first: `pipeline.py plan` → you approve → `pipeline.py run --approve-estimate <total>`.
 
 ## Install
 
@@ -47,7 +65,7 @@ Ask Codex to install from GitHub:
 $skill-installer install https://github.com/PowerTokens/media-skills/tree/main/plugins/powertokens-media/skills/powertokens-video
 ```
 
-(repeat for `powertokens-image`, `powertokens-speech`, `powertokens-ad-video`), or add the whole plugin marketplace:
+(repeat for any other skill folder), or add the whole plugin marketplace:
 
 ```bash
 codex plugin marketplace add PowerTokens/media-skills
@@ -91,7 +109,7 @@ If both exist, `POWERTOKENS_API_KEY` wins. Check with `python3 scripts/pt_login.
 
 ## Development
 
-Edit shared code in `tools/shared/`, then run `python3 tools/sync_scripts.py` (each skill folder carries its own copy so it can be installed alone). Tests: `python3 -m unittest discover tests` (offline, no credits).
+Edit shared code in `tools/shared/` and examples in `tools/examples/`, then run `python3 tools/sync_scripts.py` (each skill folder carries its own copy so it can be installed alone). Tests: `python3 -m unittest discover tests` (offline, no credits; assembly tests use local ffmpeg if present). Trigger evals: `evals/`. Design references: `docs/reference-survey.md`.
 
 ## License
 

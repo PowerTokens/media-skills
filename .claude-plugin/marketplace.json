@@ -7,7 +7,7 @@
       "name": "powertokens-media",
       "source": "./plugins/powertokens-media",
       "description": "Video (Seedance, Wan, Kling), images (Seedream) and speech (MiniMax) via PowerTokens.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "category": "media",
       "homepage": "https://github.com/PowerTokens/media-skills"
     }

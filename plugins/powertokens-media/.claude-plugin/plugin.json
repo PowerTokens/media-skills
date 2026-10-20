@@ -1,6 +1,6 @@
 {
   "name": "powertokens-media",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Generate video (Seedance, Wan, Kling), images (Seedream) and speech (MiniMax) from your coding agent with one PowerTokens account.",
   "author": { "name": "PowerTokens", "url": "https://powertokens.ai" },
   "homepage": "https://github.com/PowerTokens/media-skills",

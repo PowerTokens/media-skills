@@ -1,0 +1,14 @@
+[
+ {
+  "query": "which powertokens model is best for a 4k product shot?",
+  "should_trigger": true
+ },
+ {
+  "query": "cheapest way to draft 20 vertical videos",
+  "should_trigger": true
+ },
+ {
+  "query": "which database should I use",
+  "should_trigger": false
+ }
+]

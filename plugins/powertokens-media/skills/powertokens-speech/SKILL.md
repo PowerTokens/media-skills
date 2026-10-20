@@ -4,7 +4,7 @@ description: Turn text into natural speech (text-to-speech, voiceover, narration
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # PowerTokens speech
@@ -39,3 +39,9 @@ python3 scripts/speech.py --list-voices
 Default model `speech-2.8-turbo` (use `speech-2.8-hd` for higher quality). Max 10,000 characters per call; split longer scripts by paragraph and number the files. Billing is per character. Report the saved path.
 
 Timing: ~150 English words ≈ 1 minute. For a 15 s ad aim for 30–40 words.
+
+## Related skills
+
+- `powertokens-model-routing` — which model to use and what it costs
+- `powertokens-prompting` — prompt structure, camera language, failure fixes
+- `powertokens-pipeline` — more than one clip, storyboards, final assembly

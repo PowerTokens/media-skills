@@ -1,0 +1,14 @@
+[
+ {
+  "query": "render this storyboard into a full video with captions",
+  "should_trigger": true
+ },
+ {
+  "query": "batch generate these 8 shots and stitch them together",
+  "should_trigger": true
+ },
+ {
+  "query": "concatenate two csv files",
+  "should_trigger": false
+ }
+]

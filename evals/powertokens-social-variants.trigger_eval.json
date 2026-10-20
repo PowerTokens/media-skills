@@ -1,0 +1,14 @@
+[
+ {
+  "query": "make square and landscape versions of this ad",
+  "should_trigger": true
+ },
+ {
+  "query": "create 3 hook variants for A/B testing",
+  "should_trigger": true
+ },
+ {
+  "query": "schedule my instagram posts",
+  "should_trigger": false
+ }
+]

@@ -1,0 +1,18 @@
+[
+ {
+  "query": "make an english voiceover for this script",
+  "should_trigger": true
+ },
+ {
+  "query": "read this paragraph aloud in a calm female voice and save mp3",
+  "should_trigger": true
+ },
+ {
+  "query": "transcribe this audio file",
+  "should_trigger": false
+ },
+ {
+  "query": "fix the typo in my README",
+  "should_trigger": false
+ }
+]

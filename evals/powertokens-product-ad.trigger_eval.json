@@ -1,0 +1,14 @@
+[
+ {
+  "query": "turn this product photo into a 15 second tiktok ad",
+  "should_trigger": true
+ },
+ {
+  "query": "make a shopify promo video for my thermos",
+  "should_trigger": true
+ },
+ {
+  "query": "write ad copy for google search ads",
+  "should_trigger": false
+ }
+]

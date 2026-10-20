@@ -4,7 +4,7 @@ description: Generate AI videos (text-to-video and image-to-video) with Seedance
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # PowerTokens video
@@ -56,3 +56,9 @@ Write one shot: subject + action + setting + camera move + light + style, e.g. "
 `python3 scripts/pt_models.py --filter wan` (or `seedance`, `kling`) lists the ids the user's account can call.
 
 Prefer a GUI? PowerTokens Video Studio: https://github.com/PowerTokens/video-studio
+
+## Related skills
+
+- `powertokens-model-routing` — which model to use and what it costs
+- `powertokens-prompting` — prompt structure, camera language, failure fixes
+- `powertokens-pipeline` — more than one clip, storyboards, final assembly

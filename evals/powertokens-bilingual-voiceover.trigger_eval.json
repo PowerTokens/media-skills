@@ -1,0 +1,14 @@
+[
+ {
+  "query": "make a chinese voiceover version of this ad",
+  "should_trigger": true
+ },
+ {
+  "query": "把这个视频做成中英文两个配音版本",
+  "should_trigger": true
+ },
+ {
+  "query": "translate this email to chinese",
+  "should_trigger": false
+ }
+]

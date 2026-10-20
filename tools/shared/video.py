@@ -54,7 +54,7 @@ def estimate(model, duration, res):
     return round(MODELS[model]["price"].get(res, 0) * duration, 3)
 
 
-def build(model, prompt, duration, res, ratio, image=None, last=None, audio=True):
+def build(model, prompt, duration, res, ratio, image=None, last=None, audio=True, refs=None):
     spec = MODELS[model]
     lo, hi = spec["durations"]
     if not lo <= duration <= hi:
@@ -69,6 +69,17 @@ def build(model, prompt, duration, res, ratio, image=None, last=None, audio=True
     if last:
         media.append({"type": "last_frame", "url": pt.to_media_ref(last)})
     fam = spec["family"]
+    refs = list(refs or [])
+    if refs:
+        # Reference-to-video (character / product consistency). Docs: Wan 3.0 says reference_* and
+        # first/last frame are mutually exclusive; Kling v3 uses a different element API (not wired).
+        if fam == "kling":
+            raise pt.PTError("Reference images are not supported for Kling in this skill; use Wan 3.0 "
+                             "or Seedance.", "BAD_REQUEST", 3)
+        if fam == "wan" and media:
+            raise pt.PTError("Wan 3.0: reference images cannot be combined with first/last frame. "
+                             "Use one or the other.", "BAD_REQUEST", 3)
+        media.extend({"type": "reference_image", "url": pt.to_media_ref(r)} for r in refs)
     if fam == "wan":
         body = dict(model=model, prompt=prompt.strip(), seconds=str(duration), size=res.upper(),
                     ratio=ratio, generate_audio=audio)
@@ -158,6 +169,9 @@ def main():
     g.add_argument("--ratio", default="16:9")
     g.add_argument("-i", "--image", help="first frame: local file or https URL (image-to-video)")
     g.add_argument("--last-frame", help="optional last frame")
+    g.add_argument("--ref-image", action="append", default=[],
+                   help="reference image for character/product consistency (repeatable; Wan/Seedance). "
+                        "Refer to them in the prompt as image 1, image 2, ...")
     g.add_argument("--no-audio", action="store_true")
     g.add_argument("-o", "--output", help="default ./outputs/video-<time>.mp4")
     g.add_argument("--dry-run", action="store_true", help="print request + estimate, do not submit")
@@ -184,7 +198,7 @@ def main():
         pt.emit({"ok": True, "task_id": a.task_id, "model": model, "output": path})
         return 0
     res = a.resolution.lower()
-    endpoint, body = build(model, a.prompt, a.duration, res, a.ratio, a.image, a.last_frame, not a.no_audio)
+    endpoint, body = build(model, a.prompt, a.duration, res, a.ratio, a.image, a.last_frame, not a.no_audio, a.ref_image)
     est = estimate(model, a.duration, res)
     if a.dry_run:
         shown = {k: (v[:60] + "…" if isinstance(v, str) and len(v) > 200 else v) for k, v in body.items()}

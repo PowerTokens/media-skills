@@ -18,7 +18,7 @@ import pt_common as pt  # noqa: E402
 MODELS = {
     "seedream-4-5-251128": "Seedream 4.5 — default; sizes 2K / 4K or WxH (>= 2560x1440 total pixels)",
     "seedream-5-0-260128": "Seedream 5.0",
-    "seedream-5-0-pro-260628": "Seedream 5.0 Pro",
+    "dola-seedream-5-0-pro-260628": "Seedream 5.0 Pro",
 }
 DEFAULT_MODEL = "seedream-4-5-251128"
 
@@ -68,7 +68,13 @@ def main():
     for i, item in enumerate(items):
         path = base if i == 0 else base.with_name("%s-%d%s" % (base.stem, i + 1, base.suffix))
         if item.get("url"):
-            outputs.append(pt.download(item["url"], path, cred))
+            saved = Path(pt.download(item["url"], path, cred))
+            # Seedream returns JPEG; fix the extension so viewers and ffmpeg are not confused.
+            if pt.sniff_image_mime(saved.read_bytes()[:16]) == "image/jpeg" and saved.suffix.lower() == ".png":
+                fixed = saved.with_suffix(".jpg")
+                saved.replace(fixed)
+                saved = fixed
+            outputs.append(str(saved))
         elif item.get("b64_json"):
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(base64.b64decode(item["b64_json"]))

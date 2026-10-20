@@ -178,10 +178,41 @@ def to_media_ref(value):
         raise PTError("Image not found: %s" % value, "BAD_REQUEST", 3)
     if p.stat().st_size > 10 * 1024 * 1024:
         raise PTError("Image larger than 10 MB; resize it or pass a public URL.", "BAD_REQUEST", 3)
-    mime = mimetypes.guess_type(p.name)[0] or "image/png"
-    return "data:%s;base64,%s" % (mime.lower(), base64.b64encode(p.read_bytes()).decode("ascii"))
+    raw = p.read_bytes()
+    mime = sniff_image_mime(raw) or mimetypes.guess_type(p.name)[0] or "image/png"
+    return "data:%s;base64,%s" % (mime.lower(), base64.b64encode(raw).decode("ascii"))
+
+
+def sniff_image_mime(raw):
+    """Trust the bytes, not the file name (Seedream URLs return JPEG even when saved as .png)."""
+    if raw[:3] == b"\xff\xd8\xff":
+        return "image/jpeg"
+    if raw[:8] == b"\x89PNG\r\n\x1a\n":
+        return "image/png"
+    if raw[:4] == b"RIFF" and raw[8:12] == b"WEBP":
+        return "image/webp"
+    return None
 
 
 def default_output(kind, ext, outdir="outputs"):
     stamp = time.strftime("%Y%m%d-%H%M%S")
     return str(Path(outdir) / ("%s-%s.%s" % (kind, stamp, ext)))
+
+
+def speech_audio_url(code, content, headers):
+    """PT /v1/audio/speech: docs say 302 + Location; live API (2026-10-20) returns 200 JSON
+    {"data": {"audio": "<https url>", "status": 2}}. Accept both. Returns (url, parsed_json)."""
+    loc = headers.get("Location") or headers.get("location")
+    if code in (301, 302, 303, 307) and loc:
+        return loc, {}
+    try:
+        parsed = json.loads(content.decode("utf-8"))
+    except (ValueError, UnicodeError):
+        return None, {}
+    if not isinstance(parsed, dict):
+        return None, {}
+    data = parsed.get("data") if isinstance(parsed.get("data"), dict) else {}
+    url = data.get("audio") or parsed.get("audio") or parsed.get("url")
+    if code == 200 and isinstance(url, str) and url.startswith("https://"):
+        return url, parsed
+    return None, parsed

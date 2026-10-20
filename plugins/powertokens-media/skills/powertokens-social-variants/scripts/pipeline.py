@@ -258,16 +258,11 @@ def run_voiceover(spec, cred, state, wd):
                 "speed": line.get("speed", vo.get("speed", 1.0)), "response_format": "mp3",
                 "metadata": {"output_format": "url"}}
         code, content, headers = pt.request("POST", "/v1/audio/speech", body, cred=cred, timeout=300, raw=True)
-        loc = headers.get("Location") or headers.get("location")
+        url, parsed = pt.speech_audio_url(code, content, headers)
         out = wd / "voiceover" / ("%s.mp3" % key)
-        if code in (301, 302, 303, 307) and loc:
-            st["output"] = pt.download(loc, out)
-        else:
-            try:
-                parsed = json.loads(content.decode("utf-8"))
-            except ValueError:
-                parsed = {}
-            pt.raise_for(code, parsed if isinstance(parsed, dict) else {}, "Voiceover %s" % key)
+        if not url:
+            pt.raise_for(code, parsed, "Voiceover %s" % key)
+        st["output"] = pt.download(url, out)
         st["status"] = "done"
         save_state(spec, state)
         done.append(key)

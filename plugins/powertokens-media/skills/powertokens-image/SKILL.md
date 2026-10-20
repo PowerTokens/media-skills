@@ -40,7 +40,7 @@ python3 scripts/image.py -p "the same bottle on a sunny beach" --image bottle.pn
 python3 scripts/image.py -p "4 frames: ..." -n 4
 ```
 
-Default model `seedream-4-5-251128`; others: `seedream-5-0-260128`, `seedream-5-0-pro-260628` (`--list-models`). Use `--dry-run` to see the request without spending. Report the saved paths from `outputs`.
+Default model `seedream-4-5-251128`; others: `seedream-5-0-260128`, `dola-seedream-5-0-pro-260628` (`--list-models`). Use `--dry-run` to see the request without spending. Report the saved paths from `outputs`.
 
 Prompt tips: subject, setting, composition, lighting, style, and any exact text in quotes. Keep it under ~600 English words.
 

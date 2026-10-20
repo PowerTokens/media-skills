@@ -58,20 +58,15 @@ def main():
     cred, _ = pt.get_credential()
     code, content, headers = pt.request("POST", "/v1/audio/speech", body, cred=cred, timeout=300, raw=True)
     out = a.output or pt.default_output("speech", a.format)
-    location = headers.get("Location") or headers.get("location")
-    if code in (301, 302, 303, 307) and location:
-        path = pt.download(location, out)  # temporary file URL; no credential forwarded
-    elif code == 200 and content and not content[:1] in (b"{", b"["):
+    url, parsed = pt.speech_audio_url(code, content, headers)
+    if url:
+        path = pt.download(url, out)  # temporary file URL; no credential forwarded
+    elif code == 200 and content and content[:1] not in (b"{", b"["):
         Path(out).parent.mkdir(parents=True, exist_ok=True)
         Path(out).write_bytes(content)
         path = str(Path(out).resolve())
     else:
-        import json
-        try:
-            parsed = json.loads(content.decode("utf-8"))
-        except ValueError:
-            parsed = {"_raw": content[:300].decode("utf-8", "replace")}
-        pt.raise_for(code, parsed if isinstance(parsed, dict) else {}, "Speech")
+        pt.raise_for(code, parsed, "Speech")
     pt.emit({"ok": True, "model": a.model, "voice": a.voice, "characters": len(text), "output": path})
     return 0
 

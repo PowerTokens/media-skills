@@ -53,6 +53,27 @@ class VideoTests(unittest.TestCase):
         self.assertEqual(pt.classify(429, body), "INSUFFICIENT_CREDITS")
 
 
+class LiveShapeTests(unittest.TestCase):
+    """Response shapes seen on the live API (2026-10-20)."""
+    def test_speech_200_json_audio_url(self):
+        body = json.dumps({"data": {"audio": "https://cdn.example.com/a.mp3", "status": 2}}).encode()
+        self.assertEqual(pt.speech_audio_url(200, body, {})[0], "https://cdn.example.com/a.mp3")
+
+    def test_speech_302_location(self):
+        self.assertEqual(pt.speech_audio_url(302, b"", {"Location": "https://x/a.mp3"})[0], "https://x/a.mp3")
+
+    def test_speech_error_json(self):
+        url, parsed = pt.speech_audio_url(400, b'{"error": {"message": "bad voice"}}', {})
+        self.assertIsNone(url)
+        self.assertIn("error", parsed)
+
+    def test_sniff_jpeg_named_png(self):
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as fh:
+            fh.write(b"\xff\xd8\xff\xe0fakejpeg")
+        self.assertTrue(pt.to_media_ref(fh.name).startswith("data:image/jpeg;base64,"))
+        os.unlink(fh.name)
+
+
 class LoginTests(unittest.TestCase):
     def test_placeholders_block_login(self):
         with self.assertRaises(pt.PTError) as ctx:

@@ -30,3 +30,9 @@ Notes from the docs:
   model availability, prices for non-default inputs. Say "unknown" rather than guessing.
 
 Estimated cost = list USD/s × seconds. Example: Wan 3.0 720p 5 s ≈ $0.50.
+
+## Live check (2026-10-20, authenticated GET /v1/models, test account)
+All five model ids above are listed. Real test generations succeeded for `wan3.0-video` (480p, 2 s,
+9:16 → 480×854) and `dreamina-seedance-2-0-fast-260128` (480p, 4 s, 9:16 with one reference image →
+496×864, 4.04 s). Other video ids the account also lists (not covered by this pack): wan2.x, other
+Seedance/Kling versions, Vidu, MiniMax Hailuo and `MiniMax-H3-Max`. Per-account lists can differ.

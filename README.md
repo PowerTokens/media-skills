@@ -4,6 +4,10 @@ Let Claude Code, Codex and other [Agent Skills](https://agentskills.io)-compatib
 
 > 中文：一个 PowerTokens 账号，让 Claude Code / Codex 直接调用 Seedance、Wan、可灵、Seedream 和 MiniMax 生成视频、图片和配音。
 
+<p align="center"><img src="assets/demo.gif" width="216" alt="Demo: 2-shot thermos ad made with Wan 3.0 + MiniMax voiceover, then a Seedance 2.0 Fast clip using a Seedream image as reference"></p>
+
+<sub>Real output from these skills (480p drafts): Seedream keyframe → Wan 3.0 2-shot ad with captions; Seedance 2.0 Fast with the same image as reference.</sub>
+
 You ask in plain language; the agent picks the skill, calls the API, waits for the job and saves the file to `./outputs/`.
 
 ```text
@@ -98,7 +102,7 @@ If both exist, `POWERTOKENS_API_KEY` wins. Check with `python3 scripts/pt_login.
 | Video | `dreamina-seedance-2-0-fast-260128` | Seedance 2.0 Fast, 4–15 s, up to 720p |
 | Video | `dreamina-seedance-2-5-260628` | Seedance 2.5, 4–30 s, up to 1080p |
 | Video | `kling-v3` | Kling v3, 3–15 s, 720p / 1080p / 4K |
-| Image | `seedream-4-5-251128` (default), `seedream-5-0-260128`, `seedream-5-0-pro-260628` | 2K / 4K or custom size, up to 14 reference images |
+| Image | `seedream-4-5-251128` (default), `seedream-5-0-260128`, `dola-seedream-5-0-pro-260628` | 2K / 4K or custom size, up to 14 reference images |
 | Speech | `speech-2.8-turbo` (default), `speech-2.8-hd` | MiniMax; English, Chinese, Japanese and more voices |
 
 `python3 scripts/pt_models.py --filter seedance` shows what your account can call. Prices: [powertokens.ai/models](https://powertokens.ai/models?utm_source=github&utm_medium=oss&utm_campaign=media-skills). `--dry-run` on any script shows the request (and, for video, a cost estimate) without spending.

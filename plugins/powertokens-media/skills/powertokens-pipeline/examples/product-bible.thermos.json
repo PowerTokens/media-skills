@@ -1,10 +1,28 @@
 {
   "product_name": "North Loop insulated bottle (thermos-like)",
+  "category": "drinkware",
+  "subtype": "dual-lid insulated thermos",
   "qc_model": "MiniMax-M3",
   "immutable": {
-    "lid_modes": [
-      {"id": "screw_lid", "how": "Full metal/plastic screw-off lid on the threaded bottle mouth; remove entire lid to drink or pour."},
-      {"id": "flip_hinge_pour", "how": "Separate plastic flip/hinge pour lid that sits on its own seat — not a spout molded onto the screw threads."}
+    "parts": [
+      {
+        "id": "body",
+        "role": "body",
+        "how": "Tall double-wall insulated cylinder; matte black exterior; fixed mouth diameter as in refs.",
+        "states": ["closed", "open"]
+      },
+      {
+        "id": "screw_lid",
+        "role": "closure",
+        "how": "Full metal/plastic screw-off lid on the threaded bottle mouth; remove entire lid to drink or pour.",
+        "states": ["on", "off"]
+      },
+      {
+        "id": "flip_hinge_pour",
+        "role": "closure",
+        "how": "Separate plastic flip/hinge pour lid that sits on its own seat — not a spout molded onto the screw threads.",
+        "states": ["closed", "flipped_open"]
+      }
     ],
     "forbid": [
       "do not invent a plastic pour spout or flip lid opening directly on the metal screw threads",
@@ -20,5 +38,6 @@
     {"path": "product-open-screw.jpg", "shows": "optional: screw lid removed"},
     {"path": "product-flip.jpg", "shows": "optional: flip/hinge pour mode"}
   ],
-  "notes": "If a shot needs 'steam from open lid', specify which lid_mode id is open; never invent a third mechanism."
+  "must_match_refs": ["screw_lid", "flip_hinge_pour", "body"],
+  "notes": "If a shot needs 'steam from open lid', specify which parts[].id is open; never invent a third closure mechanism."
 }

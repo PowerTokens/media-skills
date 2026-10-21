@@ -1,0 +1,49 @@
+{
+  "product_name": "Harbor Day zip tote",
+  "category": "bag",
+  "subtype": "top-zip tote",
+  "qc_model": "MiniMax-M3",
+  "immutable": {
+    "parts": [
+      {
+        "id": "shell",
+        "role": "body",
+        "how": "Structured fabric tote body with fixed panel seams and base shape as in refs.",
+        "states": ["closed", "open"]
+      },
+      {
+        "id": "top_zipper",
+        "role": "closure",
+        "how": "Full-length top zipper with two pulls; no flap, no magnetic snap primary closure.",
+        "states": ["zipped", "unzipped"]
+      },
+      {
+        "id": "handles",
+        "role": "hardware",
+        "how": "Dual short top handles stitched to the rim; no crossbody strap unless shown in refs.",
+        "states": ["upright", "folded"]
+      },
+      {
+        "id": "hardware",
+        "role": "hardware",
+        "how": "Zipper pulls and rivets in the reference metal finish; do not swap to gold/chrome inventively."
+      }
+    ],
+    "forbid": [
+      "do not replace the top zipper with a flap, buckle, or drawstring",
+      "do not invent exterior pockets, logos patches, or straps not in refs",
+      "do not change handle length/attachment points or add a shoulder strap",
+      "do not redesign the base silhouette or panel count"
+    ],
+    "colors": "Shell and lining colors as in refs; hardware finish locked.",
+    "logos": "none — do not invent brand patches",
+    "proportions": "Tote height/width/depth ratio and handle arc match refs."
+  },
+  "refs": [
+    {"path": "tote-closed.jpg", "shows": "zipped hero"},
+    {"path": "tote-open.jpg", "shows": "unzipped interior rim"},
+    {"path": "tote-hardware.jpg", "shows": "zipper pulls / rivets"}
+  ],
+  "must_match_refs": ["top_zipper", "handles", "shell"],
+  "notes": "Open shots may unzip (states) but must keep the same zipper track and handle attachment."
+}

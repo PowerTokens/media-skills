@@ -1,0 +1,49 @@
+{
+  "product_name": "TrailPulse lace-up running shoe",
+  "category": "footwear",
+  "subtype": "lace-up running shoe",
+  "qc_model": "MiniMax-M3",
+  "immutable": {
+    "parts": [
+      {
+        "id": "upper",
+        "role": "body",
+        "how": "Mesh/knit upper with fixed eyestay and tongue geometry as in refs.",
+        "states": ["laced", "untied"]
+      },
+      {
+        "id": "lacing",
+        "role": "closure",
+        "how": "Traditional lace-up through visible eyelets; no BOA dial, no velcro strap.",
+        "states": ["tied", "loose"]
+      },
+      {
+        "id": "toe_box",
+        "role": "structure",
+        "how": "Rounded toe box with the same overlay/panel seams as refs; do not reshape to pointed or square."
+      },
+      {
+        "id": "outsole",
+        "role": "sole",
+        "how": "Rubber outsole with the reference tread/lug pattern and midsole height; lateral and medial profiles match refs.",
+        "states": ["grounded"]
+      }
+    ],
+    "forbid": [
+      "do not invent a different outsole tread or lug pattern",
+      "do not turn lace-up into slip-on, BOA, or strap closure",
+      "do not change toe-box shape or add unlisted overlays",
+      "do not redesign midsole stack height or rocker profile"
+    ],
+    "colors": "Upper and sole colors as in refs; no unlisted accent swaps.",
+    "logos": "heel/side mark as in refs only — do not invent wordmarks",
+    "proportions": "Keep last silhouette, collar height, and sole thickness matching refs."
+  },
+  "refs": [
+    {"path": "sneaker-lateral.jpg", "shows": "lateral hero"},
+    {"path": "sneaker-outsole.jpg", "shows": "outsole tread"},
+    {"path": "sneaker-medial.jpg", "shows": "medial / lace detail"}
+  ],
+  "must_match_refs": ["outsole", "lacing", "toe_box"],
+  "notes": "Action shots may untie laces (states) but must keep the same outsole pattern and upper panel layout."
+}

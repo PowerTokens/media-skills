@@ -19,15 +19,15 @@ NEEDS = {
     "powertokens-speech": (AUTH + ["speech.py"], []),
     "powertokens-model-routing": (AUTH + ["video.py"], []),
     "powertokens-prompting": ([], []),
-    "powertokens-pipeline": (PIPE + ["product_qc.py"], ["product-ad.json", "product-bible.thermos.json", "short-drama.json", "ugc-ad.json", "bilingual-vo.json"]),
-    "powertokens-product-ad": (PIPE + ["product_qc.py"], ["product-ad.json", "product-bible.thermos.json"]),
+    "powertokens-pipeline": (PIPE + ["product_qc.py"], ["product-ad.json", "product-bible.thermos.json", "product-bible.sneaker.json", "product-bible.bag.json", "short-drama.json", "ugc-ad.json", "bilingual-vo.json"]),
+    "powertokens-product-ad": (PIPE + ["product_qc.py"], ["product-ad.json", "product-bible.thermos.json", "product-bible.sneaker.json", "product-bible.bag.json"]),
     "powertokens-ugc-ad": (PIPE, ["ugc-ad.json"]),
     "powertokens-short-drama": (PIPE, ["short-drama.json"]),
     "powertokens-social-variants": (PIPE, []),
     "powertokens-bilingual-voiceover": (PIPE, ["bilingual-vo.json"]),
     "powertokens-travel-poster": (AUTH + ["image.py"], []),
     "powertokens-product-qc": (AUTH + ["image.py", "video.py", "speech.py", "pipeline.py", "product_qc.py"],
-                               ["product-ad.json", "product-bible.thermos.json"]),
+                               ["product-ad.json", "product-bible.thermos.json", "product-bible.sneaker.json", "product-bible.bag.json"]),
 }
 check = "--check" in sys.argv
 stale = []

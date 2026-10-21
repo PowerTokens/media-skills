@@ -43,11 +43,12 @@ Create **before** storyboard spend. Store as JSON next to the shot list. Schema 
 - `category` — 大类 (string)
 - `subtype` — 分型 (string)
 - `immutable` — object (see below)
-- `refs` — 1–3 `{path, shows?}` approved photos
+- `refs` — 1–5 `{path, shows?, kind?, part?}` approved photos (hero + optional part-detail)
 
 ### Optional top-level
 
 - `qc_model`, `notes`, `must_match_refs` (string list of part ids that must match refs exactly)
+- Each ref may set `kind`: `hero` (full SKU packshot) or `part_detail` (single BOM part close-up) and `part`: `<parts[].id>` when `kind` is `part_detail`
 
 ### `immutable` required
 
@@ -65,6 +66,19 @@ Create **before** storyboard spend. Store as JSON next to the shot list. Schema 
 - `immutable.lid_modes` — legacy thermos field → normalized into `parts` with `role=closure`
 
 After load, the runtime bible always has `immutable.parts` (and a derived `structure` id/how list for emitters).
+
+
+### Part-detail refs → unify with hero（单独部件参考必须与原产品统一）
+
+When a shot needs a close-up of one BOM part that the hero packshot does not show clearly (open lid, sole tread, zipper pull, port layout, pump head, …):
+
+1. Find or shoot a **part-detail** ref for that part only.
+2. Tag it in `refs`: `{ "path": "…", "shows": "…", "kind": "part_detail", "part": "<parts[].id>" }`.
+3. Keep at least one **hero** ref (`kind: "hero"` or an unmarked full-SKU packshot).
+4. **Unify before generate:** every keyframe prompt that uses a part-detail ref must also pass the hero product ref (and the approved composition keyframe when fixing one part on an existing still). The model may change **only** the named `part`; body height, proportions, colors/finish, logo policy, and scene framing stay locked to the hero / approved frame.
+5. Vision QC **fail** if the part fix shortened the body, changed silhouette, or restyled the product from the part crop.
+
+**Trigger lesson (northloop):** a flip-lid crop alone produced a correct lid on a **too-short** bottle — rejected; regen must match the original composition and only swap the lid.
 
 ## 2. Prompt hard constraints（硬约束）
 
@@ -129,7 +143,8 @@ Golden bibles under `tools/examples/product-bible.*.json` + offline tests for sc
 
 1. Identify **category** → **subtype** with the user.  
 2. Decompose **parts** BOM (`id` / `role` / `how` / `states?`).  
-3. Write **forbid** from part risks; fill colors, logos, proportions, refs.  
+3. Write **forbid** from part risks; fill colors, logos, proportions, refs.
+   If a part is unclear on the hero packshot, find a **part-detail** ref → tag `kind`/`part` → **unify onto the hero** before spend (body/proportions/scene locked; only that part changes).  
 4. `product_qc.py validate-bible` → OK.  
 5. Append `constraints` into every keyframe prompt.  
 6. `pipeline validate` (bible gate) → `plan` → user approves $ → `run`.  

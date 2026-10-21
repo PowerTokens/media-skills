@@ -1,13 +1,16 @@
 {
   "name": "powertokens",
-  "description": "PowerTokens skills for Claude Code: video, image and speech generation.",
-  "owner": { "name": "PowerTokens", "url": "https://powertokens.ai" },
+  "description": "PowerTokens Agent Skills: Seedance / Wan / Kling / Seedream / MiniMax \u2014 product ads, UGC, pipeline, product consistency QC.",
+  "owner": {
+    "name": "PowerTokens",
+    "url": "https://powertokens.ai"
+  },
   "plugins": [
     {
       "name": "powertokens-media",
       "source": "./plugins/powertokens-media",
-      "description": "Video (Seedance, Wan, Kling), images (Seedream) and speech (MiniMax) via PowerTokens.",
-      "version": "0.2.0",
+      "description": "Agent Skills for Seedance 2.5 / Mini / Fast, Wan, Kling, Seedream and MiniMax via PowerTokens \u2014 product ads, UGC, pipeline, product bible QC. One API key; Claude Code / Codex / Cursor.",
+      "version": "0.3.0",
       "category": "media",
       "homepage": "https://github.com/PowerTokens/media-skills"
     }

@@ -32,7 +32,7 @@ Examples: `examples/claim-sheet.json`, `examples/product-ad.json`.
 
 Real SKUs have fixed **structure/parts** that Seedream invents wrong (wrong closure, sole, zipper, ports, etc.). Before spending, build a generic product bible in order:
 
-1. **Category → subtype → parts BOM** — identify 大类, 分型, then decompose `immutable.parts` `{id, role, how, states?}`. Write forbid from part risks; lock colors, logos, proportions, 1–3 refs (`powertokens-product-qc` / `examples/product-bible.*.json`).
+1. **Category → subtype → parts BOM** — identify 大类, 分型, then decompose `immutable.parts` `{id, role, how, states?}`. Write forbid from part risks; lock colors, logos, proportions, 1–5 refs (`powertokens-product-qc` / `examples/product-bible.*.json`). If a shot needs a separate part-detail ref (lid/sole/zipper/…), find it then **unify onto the hero product** — do not let a part-only crop rewrite body height or scene.
 2. Set shot list `"kind": "product-ad"` and `"product_bible": "<file>.json"`.
 3. Append `product_qc.py constraints` text into every keyframe prompt.
 4. After each keyframe: `pipeline.py run` vision QC (default on for product-ad; `MiniMax-M3` / glm-5.x) → one retry or stop (fail-closed if vision API down unless `--skip-vision-qc`); `hero: true` pauses until `approve-hero` (or `--auto-approve-hero`).

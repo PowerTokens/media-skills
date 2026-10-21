@@ -340,7 +340,9 @@ def finish(shotlist, preset=None, out=None, keep=False):
     if not shutil.which("ffmpeg"):
         raise pt.PTError("ffmpeg not found; install it to use finishing.", "MISSING_FFMPEG", 2)
     spec = pipeline.load(shotlist)
-    pipeline.validate(spec)
+    verrs = pipeline.validate(spec)
+    if verrs:
+        raise pt.PTError("Shot list invalid (claims/bible/schema): " + "; ".join(verrs), "BAD_REQUEST", 3)
     cfg = spec.get("finish", {})
     p = dict(PRESETS[preset or cfg.get("preset", "clean-premium")])
     p.update({k: v for k, v in cfg.get("overrides", {}).items()})

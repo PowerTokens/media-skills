@@ -4,7 +4,7 @@ description: Produce a short vertical product ad (TikTok, Reels, Shorts, paid so
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.3.0"
+  version: "0.3.1"
 ---
 
 # Product ad (image → vertical ad)
@@ -31,7 +31,7 @@ Real SKUs have fixed **structure/parts** that Seedream invents wrong (wrong clos
 1. **Category → subtype → parts BOM** — identify 大类, 分型, then decompose `immutable.parts` `{id, role, how, states?}`. Write forbid from part risks; lock colors, logos, proportions, 1–3 refs (`powertokens-product-qc` / `examples/product-bible.*.json`).
 2. Set shot list `"kind": "product-ad"` and `"product_bible": "<file>.json"`.
 3. Append `product_qc.py constraints` text into every keyframe prompt.
-4. After each keyframe: vision QC via `product_qc.py vision-prompt` (chat model `MiniMax-M3` or glm-5.x) → one retry or human stop; hero frames get human OK before i2v.
+4. After each keyframe: `pipeline.py run` vision QC (default on for product-ad; `MiniMax-M3` / glm-5.x) → one retry or stop (fail-closed if vision API down unless `--skip-vision-qc`); `hero: true` pauses until `approve-hero` (or `--auto-approve-hero`).
 
 Details: `powertokens-product-qc` and repo `docs/product-consistency-qc.md`.
 

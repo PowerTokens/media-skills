@@ -1,13 +1,53 @@
 {
   "project": "last-train-ep1",
   "style": "Realistic cinematic look, rainy night, cool blue tones, film grain.",
-  "defaults": {"model": "seedance-fast", "resolution": "720p", "ratio": "9:16", "duration": 4, "audio": true},
+  "defaults": {
+    "model": "seedance-fast",
+    "resolution": "720p",
+    "ratio": "9:16",
+    "duration": 4,
+    "audio": true
+  },
   "characters": {
-    "ning": {"description": "Ning, a woman in her twenties with a long dark ponytail, beige trench coat, silver earrings.", "ref_image": "refs/ning.png"}
+    "ning": {
+      "description": "Ning, a woman in her twenties with a long dark ponytail, beige trench coat, silver earrings.",
+      "ref_image": "refs/ning.png",
+      "traits": [
+        "long dark ponytail",
+        "beige trench coat",
+        "silver earrings"
+      ],
+      "forbid": [
+        "do not change hair to short bob",
+        "do not swap trench for leather jacket"
+      ]
+    }
   },
   "shots": [
-    {"id": "s01", "characters": ["ning"], "prompt": "0-2s: wide shot of an empty train station in the rain, Ning walks in. 2-4s: medium shot, she notices a phone glowing on a bench.", "caption": "11:58 p.m."},
-    {"id": "s02", "characters": ["ning"], "prompt": "Close-up of the phone screen lighting up, a voice message plays: \"Don't get on the last train.\" Ning's face freezes.", "caption": "\"Don't get on the last train.\""},
-    {"id": "s03", "characters": ["ning"], "prompt": "0-2s: the last train pulls in, brakes screeching. 2-4s: Ning steps back; through the door glass a woman identical to her stares back.", "caption": "Who is she?"}
-  ]
+    {
+      "id": "s01",
+      "characters": [
+        "ning"
+      ],
+      "prompt": "0-2s: wide shot of an empty train station in the rain, Ning walks in. 2-4s: medium shot, she notices a phone glowing on a bench.",
+      "caption": "11:58 p.m."
+    },
+    {
+      "id": "s02",
+      "characters": [
+        "ning"
+      ],
+      "prompt": "Close-up of the phone screen lighting up, a voice message plays: \"Don't get on the last train.\" Ning's face freezes.",
+      "caption": "\"Don't get on the last train.\""
+    },
+    {
+      "id": "s03",
+      "characters": [
+        "ning"
+      ],
+      "prompt": "0-2s: the last train pulls in, brakes screeching. 2-4s: Ning steps back; through the door glass a woman identical to her stares back.",
+      "caption": "Who is she?"
+    }
+  ],
+  "kind": "short-drama"
 }

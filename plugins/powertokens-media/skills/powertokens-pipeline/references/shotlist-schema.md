@@ -48,4 +48,31 @@ State: `<workdir>/state.json` (task ids, outputs). Plan: `<workdir>/plan.json`.
 
 - `kind: product-ad` (or `--require-product-bible`) makes `validate` / `plan` / `run` refuse without a valid bible.
 - When a bible is present, `pipeline.py` **auto-appends** `product_qc.constraints_block` to every shot prompt and Seedream keyframe prompt, and merges existing bible `refs` into **Seedream keyframe** refs only (not Wan/Kling i2v — first-frame + constraints carry the lock).
-- Optional per-shot `"hero": true` — agent should pause for human OK after the keyframe (not hard-gated in code yet).
+- **Vision QC (wired):** after each Seedream keyframe, `run` calls chat vision vs the bible (default **on** for product-ad). One regenerate on fail; still fail → shot failed, no i2v. API unavailable → **fail-closed** for product-ad unless `--skip-vision-qc`.
+- Per-shot `"hero": true` — after QC pass, writes `hero_pending.json` and **pauses i2v** until `pipeline.py approve-hero <shotlist> <shot_id>` (or `--auto-approve-hero` for CI).
+
+Flags on `run`: `--vision-qc` · `--skip-vision-qc` · `--auto-approve-hero`.
+
+## Character bible (short-drama / UGC)
+
+```json
+{
+  "kind": "short-drama",
+  "character_bible": "character-bible.json",
+  "characters": {
+    "ning": {"description": "…", "traits": ["…"], "forbid": ["…"], "ref_image": "refs/ning.png"}
+  }
+}
+```
+
+- `kind: short-drama` requires `character_bible` **or** inline `characters` with non-empty `description` (schema via `character_qc.py`).
+- `kind: ugc-ad` with characters: same schema check (description required).
+- Example: `examples/character-bible.ning.json`.
+
+## Claims lint
+
+Captions, voiceover lines, and `finish.end_card` / hook text are scanned for award / certification / fake-review patterns. Refuse unless `"claims_approved": true` on the shot list.
+
+## Assemble captions
+
+Default burn-in style uses TikTok/Reels lower-middle safe zone (`MarginV=520`, wider `MarginR`). Override with `assembly.caption_style`.

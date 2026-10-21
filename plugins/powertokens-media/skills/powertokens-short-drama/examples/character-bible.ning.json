@@ -1,0 +1,20 @@
+{
+  "characters": [
+    {
+      "id": "ning",
+      "description": "Ning, a woman in her twenties with a long dark ponytail, beige trench coat, silver earrings.",
+      "traits": [
+        "long dark ponytail",
+        "beige trench coat",
+        "silver earrings"
+      ],
+      "forbid": [
+        "do not change hair to short bob",
+        "do not swap trench for leather jacket"
+      ],
+      "refs": [
+        "refs/ning.png"
+      ]
+    }
+  ]
+}

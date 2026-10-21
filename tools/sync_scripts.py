@@ -14,20 +14,21 @@ SKILLS = ROOT / "plugins" / "powertokens-media" / "skills"
 AUTH = ["pt_common.py", "pt_login.py", "pt_models.py"]
 PIPE = AUTH + ["video.py", "image.py", "speech.py", "pipeline.py"]
 FINISH = ["captions.py", "finish.py"]
+QC = ["product_qc.py", "character_qc.py", "claim_lint.py"]
 NEEDS = {
     "powertokens-video": (AUTH + ["video.py"], []),
     "powertokens-image": (AUTH + ["image.py"], []),
     "powertokens-speech": (AUTH + ["speech.py"], []),
     "powertokens-model-routing": (AUTH + ["video.py"], []),
     "powertokens-prompting": ([], []),
-    "powertokens-pipeline": (PIPE + FINISH + ["product_qc.py"], ["product-ad.json", "product-bible.thermos.json", "product-bible.sneaker.json", "product-bible.bag.json", "short-drama.json", "ugc-ad.json", "bilingual-vo.json"]),
-    "powertokens-product-ad": (PIPE + FINISH + ["product_qc.py"], ["product-ad.json", "product-bible.thermos.json", "product-bible.sneaker.json", "product-bible.bag.json"]),
-    "powertokens-ugc-ad": (PIPE + FINISH, ["ugc-ad.json"]),
-    "powertokens-short-drama": (PIPE + FINISH, ["short-drama.json"]),
-    "powertokens-social-variants": (PIPE + FINISH, []),
-    "powertokens-bilingual-voiceover": (PIPE + FINISH, ["bilingual-vo.json"]),
+    "powertokens-pipeline": (PIPE + FINISH + QC, ["product-ad.json", "product-bible.thermos.json", "product-bible.sneaker.json", "product-bible.bag.json", "short-drama.json", "ugc-ad.json", "bilingual-vo.json", "character-bible.ning.json"]),
+    "powertokens-product-ad": (PIPE + FINISH + QC, ["product-ad.json", "product-bible.thermos.json", "product-bible.sneaker.json", "product-bible.bag.json"]),
+    "powertokens-ugc-ad": (PIPE + FINISH + QC, ["ugc-ad.json", "character-bible.ning.json"]),
+    "powertokens-short-drama": (PIPE + FINISH + QC, ["short-drama.json", "character-bible.ning.json"]),
+    "powertokens-social-variants": (PIPE + FINISH + QC, []),
+    "powertokens-bilingual-voiceover": (PIPE + FINISH + QC, ["bilingual-vo.json"]),
     "powertokens-travel-poster": (AUTH + ["image.py"], []),
-    "powertokens-product-qc": (AUTH + ["image.py", "video.py", "speech.py", "pipeline.py", "product_qc.py"],
+    "powertokens-product-qc": (AUTH + ["image.py", "video.py", "speech.py", "pipeline.py"] + QC,
                                ["product-ad.json", "product-bible.thermos.json", "product-bible.sneaker.json", "product-bible.bag.json"]),
 }
 check = "--check" in sys.argv

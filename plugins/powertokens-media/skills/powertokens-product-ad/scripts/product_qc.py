@@ -319,6 +319,83 @@ def parse_verdict(raw):
     }
 
 
+
+def materialize_vision_body(body):
+    """Copy chat body and replace file:// / local image_url entries with data: URLs."""
+    import copy
+    out = copy.deepcopy(body)
+    for msg in out.get("messages") or []:
+        content = msg.get("content")
+        if not isinstance(content, list):
+            continue
+        for part in content:
+            if not isinstance(part, dict) or part.get("type") != "image_url":
+                continue
+            url = (part.get("image_url") or {}).get("url") or ""
+            if url.startswith("file://"):
+                url = url[7:]
+            if url and not url.startswith(("http://", "https://", "data:")):
+                part["image_url"]["url"] = pt.to_media_ref(url)
+            elif url.startswith("file://"):
+                part["image_url"]["url"] = pt.to_media_ref(url[7:])
+    return out
+
+
+def extract_chat_content(resp):
+    """Pull assistant text from a /v1/chat/completions-style response."""
+    if not isinstance(resp, dict):
+        return str(resp)
+    choices = resp.get("choices")
+    if isinstance(choices, list) and choices:
+        msg = choices[0].get("message") if isinstance(choices[0], dict) else None
+        if isinstance(msg, dict):
+            content = msg.get("content")
+            if isinstance(content, list):
+                parts = []
+                for p in content:
+                    if isinstance(p, dict) and p.get("type") == "text":
+                        parts.append(p.get("text") or "")
+                    elif isinstance(p, str):
+                        parts.append(p)
+                return "\n".join(parts)
+            if content is not None:
+                return content if isinstance(content, str) else json.dumps(content)
+    for key in ("output_text", "content", "result"):
+        if resp.get(key):
+            return resp[key] if isinstance(resp[key], str) else json.dumps(resp[key])
+    return json.dumps(resp)[:2000]
+
+
+def call_vision_qc(bible, keyframe, cred, refs=None, model=None):
+    """POST chat completion for product QC. Returns parse_verdict dict. Raises PTError."""
+    body = materialize_vision_body(vision_messages(bible, keyframe, refs, model))
+    code, resp, _ = pt.request("POST", "/v1/chat/completions", body, cred=cred, timeout=180)
+    if code != 200:
+        pt.raise_for(code, resp, "Vision QC chat")
+    raw = extract_chat_content(resp)
+    try:
+        return parse_verdict(raw)
+    except pt.PTError:
+        # Some models wrap JSON; re-raise with preview
+        raise
+
+
+def augment_prompt_negatives(prompt, failures):
+    """Append strict fix instructions from QC failures for one keyframe retry."""
+    fails = [str(f).strip() for f in (failures or []) if str(f).strip()]
+    if not fails:
+        fails = ["unspecified structure mismatch vs product bible"]
+    fix = (
+        " STRICT FIX after failed product QC — do NOT repeat: %s. "
+        "Obey PRODUCT LOCK / parts BOM exactly; no hybrid or invented parts."
+        % "; ".join(fails[:8])
+    )
+    base = (prompt or "").rstrip()
+    if "STRICT FIX after failed product QC" in base:
+        return base
+    return (base + fix).strip()
+
+
 def check_shotlist_bible(spec_or_path, require=False):
     """Validate product_bible reference on a shot list. Returns (ok, errors, bible_or_none)."""
     if isinstance(spec_or_path, (str, Path)):

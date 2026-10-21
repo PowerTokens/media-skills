@@ -138,3 +138,13 @@ Golden bibles under `tools/examples/product-bible.*.json` + offline tests for sc
 9. Deliver only QC-passed clips.
 
 See skill `powertokens-product-qc` and section in `powertokens-product-ad`.
+
+## Pipeline wiring (v0.3)
+
+`pipeline.py run` now executes vision QC after Seedream keyframes when a product bible is present (default on for `kind: product-ad`):
+
+- One regenerate with augmented negatives on fail; second fail → shot `failed`, no i2v.
+- Vision API / multimodal unavailable → **fail-closed** for product-ad unless `--skip-vision-qc`.
+- `"hero": true` → write `hero_pending.json`, pause i2v until `approve-hero` or `--auto-approve-hero`.
+
+Live multimodal smoke against MiniMax-M3 / GLM is **not** required for offline CI; confirm separately before relying on auto-pass.

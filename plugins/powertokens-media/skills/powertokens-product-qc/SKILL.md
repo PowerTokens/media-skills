@@ -4,7 +4,7 @@ description: Product-consistency QC for PowerTokens product ads — generic prod
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.3.0"
+  version: "0.3.1"
 ---
 
 # Product consistency QC

@@ -1,11 +1,58 @@
 {
   "project": "serum-ugc",
   "style": "Handheld iPhone selfie footage, natural bathroom light, authentic, slightly imperfect framing.",
-  "defaults": {"model": "seedance-2.5", "resolution": "720p", "ratio": "9:16", "duration": 6, "audio": true},
-  "characters": {"ava": {"description": "Ava, 30, freckles, messy bun, grey hoodie.", "ref_image": "refs/ava.png"}},
+  "defaults": {
+    "model": "seedance-2.5",
+    "resolution": "720p",
+    "ratio": "9:16",
+    "duration": 6,
+    "audio": true
+  },
+  "characters": {
+    "ava": {
+      "description": "Ava, 30, freckles, messy bun, grey hoodie.",
+      "ref_image": "refs/ava.png",
+      "traits": [
+        "freckles",
+        "messy bun",
+        "grey hoodie"
+      ]
+    }
+  },
   "shots": [
-    {"id": "hook", "characters": ["ava"], "ref_images": ["product.png"], "prompt": "Ava holds the serum bottle from image 2 close to the camera and says, \"Okay, I didn't expect this to work.\"", "caption": "I didn't expect this to work"},
-    {"id": "demo", "characters": ["ava"], "ref_images": ["product.png"], "prompt": "Ava applies two drops to her cheek and says, \"Two drops, morning and night.\"", "caption": "2 drops, AM + PM"},
-    {"id": "cta", "characters": ["ava"], "ref_images": ["product.png"], "prompt": "Ava smiles at the camera and says, \"Link's in my bio.\"", "caption": "Link in bio"}
-  ]
+    {
+      "id": "hook",
+      "characters": [
+        "ava"
+      ],
+      "ref_images": [
+        "product.png"
+      ],
+      "prompt": "Ava holds the serum bottle from image 2 close to the camera and says, \"Okay, I didn't expect this to work.\"",
+      "caption": "I didn't expect this to work"
+    },
+    {
+      "id": "demo",
+      "characters": [
+        "ava"
+      ],
+      "ref_images": [
+        "product.png"
+      ],
+      "prompt": "Ava applies two drops to her cheek and says, \"Two drops, morning and night.\"",
+      "caption": "2 drops, AM + PM"
+    },
+    {
+      "id": "cta",
+      "characters": [
+        "ava"
+      ],
+      "ref_images": [
+        "product.png"
+      ],
+      "prompt": "Ava smiles at the camera and says, \"Link's in my bio.\"",
+      "caption": "Link in bio"
+    }
+  ],
+  "kind": "ugc-ad"
 }

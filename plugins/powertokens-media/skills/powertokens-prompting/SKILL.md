@@ -1,6 +1,6 @@
 ---
 name: powertokens-prompting
-description: Write and fix prompts for video, image, and voice models on PowerTokens (Wan 3.0, Seedance 2.0/2.5, Kling v3, Seedream, MiniMax speech) — shot structure, camera language, timing, dialogue and audio cues, reference-image wording, and common failure fixes. Use whenever you write a prompt for any PowerTokens generation, when a result looks wrong (morphing, extra fingers, garbled text, wrong motion, drifting faces), or when the user asks for a cinematic, ad, UGC or short-drama look.
+description: Write and fix prompts for PowerTokens video, image and voice models (Wan 3.0, Seedance 2.0/2.5, Kling v3, Seedream, MiniMax speech) — shot structure, camera language, timing, dialogue and audio cues, reference-image wording, and common failure fixes. Use whenever you write a prompt for any PowerTokens generation, when a result looks wrong (morphing, extra fingers, garbled text, wrong motion, drifting faces), or when the user asks for a cinematic, ad, UGC or short-drama look.
 license: MIT
 metadata:
   author: PowerTokens

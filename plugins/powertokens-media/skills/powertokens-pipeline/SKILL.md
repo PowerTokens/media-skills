@@ -14,7 +14,7 @@ Schema: `references/shotlist-schema.md`. Examples: `examples/*.json`.
 
 ## Steps (always in this order)
 
-1. **Credentials:** `python3 scripts/pt_login.py status` (see the powertokens-clip-gen skill for API key setup).
+1. **Credentials:** `python3 scripts/pt_login.py status` (see the powertokens-video skill for API key setup).
 2. **Write the shot list** to `<project>.json` (use an example as a template; apply powertokens-prompting).
 3. **Validate (free):** `python3 scripts/pipeline.py validate shots.json` — fix every error.
 4. **Plan (free):** `python3 scripts/pipeline.py plan shots.json` → per-shot and total estimate plus

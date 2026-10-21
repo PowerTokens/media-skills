@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Finishing / polish layer for generated clips (Python stdlib + ffmpeg, no credits).
+"""Finishing / polish layer for PowerTokens videos (Python stdlib + ffmpeg, no credits).
 
   python3 finish.py finish shots.json [--preset clean-premium|ugc-punchy|cinematic] [-o out.mp4]
   python3 finish.py music out.wav --seconds 15 --bpm 100 [--mood warm|punchy|dark]

@@ -1,5 +1,5 @@
 ---
-name: powertokens-clip-gen
+name: powertokens-video
 description: Generate AI videos (text-to-video and image-to-video) with Seedance, Wan and Kling through the PowerTokens API, and save the MP4 locally. Use when the user asks to make, generate or animate a video, clip, shot, b-roll, product video, or to turn an image into a video, or names Seedance, Wan or Kling.
 license: MIT
 metadata:
@@ -7,7 +7,7 @@ metadata:
   version: "0.2.1"
 ---
 
-# Clip generation (t2v / i2v)
+# PowerTokens video
 
 Scripts live in `scripts/` next to this file. Run them with `python3` (3.8+, no pip installs). Paths below are relative to this skill folder; outputs default to `./outputs/` in the user's current directory.
 
@@ -56,6 +56,8 @@ Write one shot: subject + action + setting + camera move + light + style, e.g. "
 ## Models available to the user
 
 `python3 scripts/pt_models.py --filter wan` (or `seedance`, `kling`) lists the ids the user's account can call.
+
+Prefer a GUI? PowerTokens Video Studio: https://github.com/PowerTokens/video-studio
 
 ## Related skills
 

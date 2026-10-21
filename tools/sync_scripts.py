@@ -16,7 +16,7 @@ PIPE = AUTH + ["video.py", "image.py", "speech.py", "pipeline.py"]
 FINISH = ["captions.py", "finish.py"]
 QC = ["product_qc.py", "character_qc.py", "claim_lint.py", "claim_sheet.py"]
 NEEDS = {
-    "powertokens-clip-gen": (AUTH + ["video.py"], []),
+    "powertokens-video": (AUTH + ["video.py"], []),
     "powertokens-image": (AUTH + ["image.py"], []),
     "powertokens-speech": (AUTH + ["speech.py"], []),
     "powertokens-model-routing": (AUTH + ["video.py"], []),

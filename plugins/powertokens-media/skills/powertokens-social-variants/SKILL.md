@@ -1,6 +1,6 @@
 ---
 name: powertokens-social-variants
-description: Turn one finished clip or campaign into platform variants and A/B tests — 9:16, 1:1, 16:9 crops or native regenerations, alternative hooks, caption and CTA variants, length cut-downs (6 s, 15 s, 30 s) — with cost estimates before any regeneration. Use when the user wants versions for TikTok, Reels, Shorts, YouTube, Instagram feed, X/LinkedIn, ad A/B testing, or "make this square/landscape".
+description: Turn one PowerTokens video or campaign into platform variants and A/B tests — 9:16, 1:1, 16:9 crops or native regenerations, alternative hooks, caption and CTA variants, length cut-downs (6 s, 15 s, 30 s) — with cost estimates before any regeneration. Use when the user wants versions for TikTok, Reels, Shorts, YouTube, Instagram feed, X/LinkedIn, ad A/B testing, or "make this square/landscape".
 license: MIT
 metadata:
   author: PowerTokens

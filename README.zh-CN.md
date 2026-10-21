@@ -118,16 +118,14 @@ cp -r media-skills/plugins/powertokens-media/skills/* ~/.claude/skills/
 
 ### Codex
 
-```bash
-codex plugin marketplace add PowerTokens/media-skills
-```
-
-在**新**对话里，用自然语言说要生成视频或做一条产品广告即可（不必再贴安装命令）。
-
-仅装单个 skill：
-
 ```text
 $skill-installer install https://github.com/PowerTokens/media-skills/tree/main/plugins/powertokens-media/skills/powertokens-product-ad
+```
+
+（其它技能同理），或：
+
+```bash
+codex plugin marketplace add PowerTokens/media-skills
 ```
 
 手动：拷到 `~/.codex/skills/`（或 `~/.agents/skills/`）后重启。

@@ -118,16 +118,14 @@ cp -r media-skills/plugins/powertokens-media/skills/* ~/.claude/skills/
 
 ### Codex
 
-```bash
-codex plugin marketplace add PowerTokens/media-skills
-```
-
-In a **new** chat, ask in natural language to generate a video or run a product ad (no need to paste the install line again).
-
-One skill only:
-
 ```text
 $skill-installer install https://github.com/PowerTokens/media-skills/tree/main/plugins/powertokens-media/skills/powertokens-product-ad
+```
+
+(repeat for other skills), or:
+
+```bash
+codex plugin marketplace add PowerTokens/media-skills
 ```
 
 Manual: copy into `~/.codex/skills/` (or `~/.agents/skills/`) and restart.

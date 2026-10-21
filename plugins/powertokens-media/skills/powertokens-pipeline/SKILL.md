@@ -59,6 +59,9 @@ Burn-in style **defaults** to kinetic TikTok **A** (`tiktok` yellow word highlig
 
 ## Finish / kinetic captions (optional)
 
+Finish presets: `clean-premium` (default), `ugc-punchy`, `cinematic`. **Light user awareness:** at estimate approval, one sentence naming the default and that they can ask for UGC/cinematic — no forced picker.
+
+
 After `assemble`, optional polish (no credits):
 
 ```bash

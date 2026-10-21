@@ -45,3 +45,16 @@ Generate each at the model minimum or 4–5 s and let assembly trim; or keep dur
 ## Cost example (estimate, list prices 2026-10-05)
 5 shots × 4 s Wan 3.0 720p = 20 s × $0.10 = $2.00, + 1 Kling 1080p 3 s × $0.168 = $0.50,
 + Seedream keyframes and VO (not priced here).
+
+## Look presets (finish) — light user awareness
+
+Finish polish uses three presets (`finish.py --preset`):
+
+| Preset | Feel | When |
+|---|---|---|
+| `clean-premium` | clean commercial (default) | user just says "make a product ad" |
+| `ugc-punchy` | faster, punchier, more native-social | user asks for UGC / creator / punchy |
+| `cinematic` | slower, graded, filmic | user asks for cinematic / filmic |
+
+**Do not** show a mandatory three-option menu. At estimate/approval time, mention the default in one sentence and that they can ask for UGC or cinematic. If they already named a look in the brief, pick that preset silently and still name it in the estimate line.
+

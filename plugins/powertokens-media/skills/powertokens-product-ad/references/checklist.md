@@ -1,5 +1,6 @@
 # Delivery checklist
 - [ ] If user gave a product URL: page fetched (or failure reported); claims extracted with `source_quote` + URL only — no invented specs
+- [ ] At estimate time: one-line look note (default `clean-premium`; UGC/cinematic on request) — no forced picker
 - [ ] Claim sheet shown and **approved** (`scripts/claim_sheet.py table` / `approve`); status allows spend
 - [ ] Every hook/caption/VO/end-card line maps to an **approved** claim row (`references/copy.md`)
 - [ ] No mood-only or brand-swappable lines; hooks encode a verified benefit in ≤ 2 s

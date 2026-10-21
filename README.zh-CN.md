@@ -102,37 +102,36 @@ Agent 会选对应 skill，调用 PowerTokens，轮询任务，并把结果写�
 
 ## 安装
 
-### Claude Code（插件市场）
+### 1. 整套（全部技能）
+
+Claude Code：
 
 ```text
 /plugin marketplace add PowerTokens/media-skills
 /plugin install powertokens-media@powertokens
 ```
 
-或手动拷贝技能目录：
-
-```bash
-git clone https://github.com/PowerTokens/media-skills
-cp -r media-skills/plugins/powertokens-media/skills/* ~/.claude/skills/
-```
-
-### Codex
-
-```text
-$skill-installer install https://github.com/PowerTokens/media-skills/tree/main/plugins/powertokens-media/skills/powertokens-product-ad
-```
-
-（其它技能同理），或：
+Codex：
 
 ```bash
 codex plugin marketplace add PowerTokens/media-skills
 ```
 
-手动：拷到 `~/.codex/skills/`（或 `~/.agents/skills/`）后重启。
+这样会装上本包里的全部技能。
 
-### 其它 Agent Skills 宿主
+### 2. 仅装一个技能（Codex / skill-installer）
 
-凡是能加载 `SKILL.md` 目录的工具，都可以用 `plugins/powertokens-media/skills/`。
+只想要某一个技能时用这个。示例（产品广告）：
+
+```text
+$skill-installer install https://github.com/PowerTokens/media-skills/tree/main/plugins/powertokens-media/skills/powertokens-product-ad
+```
+
+把最后一级目录名换成技能列表里的任意技能，例如 `powertokens-video`、`powertokens-image`。路径格式：`…/plugins/powertokens-media/skills/<skill-id>`。
+
+### 3. 手动拷贝（可选）
+
+把 `plugins/powertokens-media/skills/` 拷到 `~/.claude/skills/`、`~/.codex/skills/` 或 `~/.agents/skills/`，然后重启。
 
 ## 接入 PowerTokens 账号
 

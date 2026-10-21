@@ -1,4 +1,5 @@
 # UGC checklist
+- [ ] Hooks/captions/spoken lines map to a sourced claim sheet (powertokens-product-ad `references/copy.md`); no mood-only filler
 - [ ] Persona identical across shots (same ref image + same description)
 - [ ] Persona is fictional; no real-person likeness; no fake "verified buyer" claims
 - [ ] If a real product is on camera: use `powertokens-product-qc` bible (category → subtype → parts) or at least packshot refs + "structure unchanged"

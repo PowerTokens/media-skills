@@ -55,7 +55,7 @@ With a first frame / keyframe, Seedance rejects `ratio` (HTTP 400). `video.py` o
 
 ## Caption copy (content ≠ style)
 
-Burn-in style defaults to kinetic TikTok **A** (`tiktok` yellow word highlight). **Wording** comes from the shot list: `shots[].caption`, or for `finish.py` from `voiceover.lines[].caption` / `.text` (shot captions only if there is no VO). Authors must follow product-ad `references/copy.md`: sourced claims only, reject mood-only lines, show a claim sheet before spend.
+Burn-in style defaults to kinetic TikTok **A** (`tiktok` yellow word highlight). **Wording** comes from the shot list: `shots[].caption`, or for `finish.py` from `voiceover.lines[].caption` / `.text` (shot captions only if there is no VO). Authors must follow product-ad `references/copy.md`: prefer product URL → claim sheet → user approve; sourced claims only; reject mood-only lines; no spend before yes.
 
 ## Finish / kinetic captions (optional)
 

@@ -29,7 +29,7 @@
         ]
       },
       "prompt": "Coffee pours from the thermos into the cup, steam rises, static camera.",
-      "caption": "12 hours later."
+      "caption": "12 hours. Still hot."
     },
     {
       "id": "s03",
@@ -45,10 +45,10 @@
     "voice": "English_Trustworthy_Man",
     "lines": [
       {
-        "text": "Six a.m. on the trail."
+        "text": "Six a.m. Coffee still hot."
       },
       {
-        "text": "Twelve hours later, it's still hot."
+        "text": "Twelve hours later — still hot."
       },
       {
         "text": "The everyday thermos. Link below."

@@ -1,5 +1,7 @@
 # Delivery checklist
-- [ ] Claim sheet shown to user: each hook/caption/VO/end-card line maps to a sourced claim (`references/copy.md`)
+- [ ] If user gave a product URL: page fetched (or failure reported); claims extracted with `source_quote` + URL only — no invented specs
+- [ ] Claim sheet shown and **approved** (`scripts/claim_sheet.py table` / `approve`); status allows spend
+- [ ] Every hook/caption/VO/end-card line maps to an **approved** claim row (`references/copy.md`)
 - [ ] No mood-only or brand-swappable lines; hooks encode a verified benefit in ≤ 2 s
 - [ ] Captions match VO meaning; kinetic shortening did not invent or drop facts
 - [ ] Product bible filled in order: **category → subtype → parts BOM → forbid** (+ colors, logos, proportions, 1–3 refs)
@@ -8,7 +10,7 @@
 - [ ] Same approved product refs reused across product-visible shots; no invented hybrid parts
 - [ ] Hero / packshot keyframes human-OK (or vision QC pass) before i2v
 - [ ] Product visible by 3 s; shape, label and colors match the real product in every shot
-- [ ] No invented claims, prices, awards, or certifications; end-card price only if user-provided
+- [ ] No invented claims, prices, awards, or certifications; end-card price only if user-provided / on approved sheet
 - [ ] Captions inside safe area (not under platform UI at bottom/right; prefer ~60% height); default style `tiktok` (A)
 - [ ] Seedance i2v: no `ratio` param (follows first frame); keyframe already at platform ratio
 - [ ] Ratio correct for the platform; duration within platform limits

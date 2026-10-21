@@ -1,0 +1,44 @@
+{
+  "product_url": "https://example.com/products/north-loop-bottle",
+  "fetched_at": "2026-10-21T06:00:00+08:00",
+  "product": {
+    "name": "North Loop Bottle",
+    "brand": "North Loop",
+    "category": "drinkware",
+    "subtype": "vacuum_insulated_bottle",
+    "price": null,
+    "currency": null,
+    "hero_image_urls": [],
+    "local_refs": ["product.jpg"]
+  },
+  "status": "pending_user_approval",
+  "claims": [
+    {
+      "id": "c1",
+      "claim": "Keeps coffee hot for 12 hours",
+      "source_type": "product_page",
+      "source_quote": "Keeps drinks hot for 12 hours",
+      "source_url": "https://example.com/products/north-loop-bottle",
+      "confidence": "high",
+      "status": "proposed",
+      "use_in": ["hook", "s01.caption", "s03.caption", "vo"]
+    },
+    {
+      "id": "c2",
+      "claim": "Brand name North Loop",
+      "source_type": "product_page",
+      "source_quote": "North Loop Bottle",
+      "source_url": "https://example.com/products/north-loop-bottle",
+      "confidence": "high",
+      "status": "proposed",
+      "use_in": ["s04.caption", "end_card"]
+    }
+  ],
+  "rejected_or_skipped": [
+    {
+      "text": "#1 hiking bottle 2026",
+      "reason": "award/ranking not verified on page — do not use"
+    }
+  ],
+  "notes": "Price omitted until user supplies CTA price. Do not invent."
+}

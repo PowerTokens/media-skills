@@ -2,6 +2,23 @@
 
 Captions and VO are **authored claims**, not ASR. Style (TikTok kinetic / yellow pop) is separate from **what the words say**.
 
+## Default path: product URL → claim sheet → confirm → assets
+
+When the user pastes a product link (Amazon, Shopify, brand PDP, etc.):
+
+1. **Fetch** the page. Use a browser tool if the HTML is empty/JS-rendered; otherwise HTTP fetch is fine.
+2. **Extract only what is on the page** into `claims.json` (`examples/claim-sheet.json`):
+   - `product`: name, brand, price (if shown), category/subtype guess, hero image URLs
+   - `claims[]`: each benefit/spec with `source_quote` (verbatim or tight paraphrase), `source_url`, `confidence`
+   - Put rankings, “#1”, awards, review counts, and competitor digs in `rejected_or_skipped` unless the user explicitly owns them
+3. **Show** `python3 scripts/claim_sheet.py table claims.json` (or the same table in chat). Ask which claims to keep.
+4. **Approve** with `claim_sheet.py approve … --ids …` (or mark in JSON). Status must become usable (`approved` claims only feed script/captions).
+5. **Then** write hook / captions / VO / storyboard **only** from approved rows → keyframes → video.
+
+No URL? Fall back to user brief + packshot, still using the same claim-sheet file and confirm gate.
+
+If fetch fails (login wall, geo block, empty page): tell the user, ask for paste of title + bullets + 1 packshot — do not guess the PDP.
+
 ## Where selling points come from (required)
 
 Only use claims from a **claim sheet** built before the storyboard:
@@ -9,7 +26,8 @@ Only use claims from a **claim sheet** built before the storyboard:
 | Source (priority) | Examples | Rule |
 |---|---|---|
 | User brief | name, 1–3 benefits, audience, CTA, price | Primary |
-| Product page / packaging / spec sheet user provided | capacity, hold-time, materials, warranty | Quote or paraphrase; keep numbers exact |
+| Product URL / PDP (fetched) | title, bullets, specs, printed hold-time | Extract with quote + URL; user must approve before use |
+| Packaging / spec sheet user provided | capacity, hold-time, materials, warranty | Quote or paraphrase; keep numbers exact |
 | Visible on the packshot | logo wordmark, printed claim on label | OK if readable in refs |
 | Assistant invention | fake hours, awards, “#1”, reviews, competitor digs | **Forbidden** |
 
@@ -40,7 +58,7 @@ Reject a line if **any** is true:
 
 ## Write loop (before shot list lock)
 
-1. Build claim sheet from sources above (ask if thin).
+1. Build claim sheet from URL and/or sources above (ask if thin); run `claim_sheet.py validate` + show table; wait for approve.
 2. Draft 2–3 hooks that each encode **one** claim; pick one + keep others for A/B (`powertokens-social-variants`).
 3. One caption per shot = compressed claim or curiosity gap, not a scene title.
 4. VO: 30–40 words / 15s; every sentence maps to a claim-sheet row.

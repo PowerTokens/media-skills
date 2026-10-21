@@ -11,7 +11,7 @@
 - [ ] Hero / packshot keyframes human-OK (or vision QC pass) before i2v
 - [ ] Product visible by 3 s; shape, label and colors match the real product in every shot
 - [ ] No invented claims, prices, awards, or certifications; end-card price only if user-provided / on approved sheet
-- [ ] Captions inside safe area (not under platform UI at bottom/right; prefer ~60% height); default style `tiktok` (A)
+- [ ] Captions inside safe area (not under platform UI at bottom/right; prefer ~60% height); style defaults to `tiktok` (A), changeable (`pill` / `caps-punch` / `zh`) if user asks or copy is CJK
 - [ ] Seedance i2v: no `ratio` param (follows first frame); keyframe already at platform ratio
 - [ ] Ratio correct for the platform; duration within platform limits
 - [ ] Audio levels: VO clear over ambience / ducked BGM; no clipping

@@ -4,7 +4,7 @@ description: Produce a short vertical product ad (TikTok, Reels, Shorts, paid so
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.3.3"
+  version: "0.3.4"
 ---
 
 # Product ad (URL / image → vertical ad)
@@ -26,7 +26,7 @@ Examples: `examples/claim-sheet.json`, `examples/product-ad.json`.
 7. **Keyframes** — Seedream with the real packshot as reference at 9:16 (`keyframe` in the shot list). Download hero images from the PDP when the user did not attach files (credit the URL in the bible refs).
 8. **Shot list** → `validate` → `plan` → approval → `run`.
 9. **Review clips**, offer single-shot re-takes (costs again).
-10. **Assemble** — `pipeline.py assemble` (VO + ducked audio + burned captions, default kinetic style `tiktok` / A). Then offer social variants (powertokens-social-variants).
+10. **Assemble** — `pipeline.py assemble` (VO + ducked audio + burned captions). Caption burn style **defaults to A** (`tiktok`); override with `assembly.caption_style` / `captions.py --style` (`tiktok`|`pill`|`caps-punch`|`zh`) when the user asks or language needs it — same pattern as finish presets, not a hard lock. Then offer social variants (powertokens-social-variants).
 
 ## Product consistency (required)
 

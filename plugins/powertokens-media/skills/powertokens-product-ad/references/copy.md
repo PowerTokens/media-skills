@@ -1,6 +1,8 @@
 # Copy brief (hooks, captions, VO)
 
-Captions and VO are **authored claims**, not ASR. Style (TikTok kinetic / yellow pop) is separate from **what the words say**.
+Captions and VO are **authored claims**, not ASR. Burn-in look is separate from **what the words say**.
+
+**Caption style policy:** default to A (`tiktok`: white + yellow word pop, ≤3 words / ≤16 chars EN). Do **not** treat A as locked — if the user picks another look, or the line is Chinese, switch (`pill` / `caps-punch` / `zh`, 中文默认可走 `zh` 2–4 字). Only ask when the brief is ambiguous; otherwise use the default and mention it in the plan.
 
 ## Default path: product URL → claim sheet → confirm → assets
 

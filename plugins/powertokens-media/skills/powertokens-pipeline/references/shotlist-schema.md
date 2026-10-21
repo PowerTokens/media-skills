@@ -75,4 +75,4 @@ Captions, voiceover lines, and `finish.end_card` / hook text are scanned for awa
 
 ## Assemble captions
 
-Default burn-in style uses TikTok/Reels lower-middle safe zone (`MarginV=520`, wider `MarginR`). Override with `assembly.caption_style`.
+Default burn-in uses TikTok/Reels lower-middle safe zone. Kinetic default is A (`tiktok`); override with `assembly.caption_style` or finish/`captions.py --style` (`tiktok`|`pill`|`caps-punch`|`zh`) — not locked.

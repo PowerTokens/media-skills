@@ -118,8 +118,22 @@ cp -r media-skills/plugins/powertokens-media/skills/* ~/.claude/skills/
 
 ### Codex
 
+> **Install only — do not run a skill.** The line below is an **install** command for Codex’s skill-installer. Paste it so Codex **installs** the skill. Do **not** treat it as “run / analyze / generate with a skill.”
+
 ```text
 $skill-installer install https://github.com/PowerTokens/media-skills/tree/main/plugins/powertokens-media/skills/powertokens-video
+```
+
+After install, verify that `~/.codex/skills/powertokens-video/SKILL.md` exists and its `name:` is `powertokens-video` (the description is about generating AI video via the PowerTokens API). Only then ask Codex to generate a video.
+
+If another PowerTokens video skill is already installed (for example an older `powertokens-tutorial-video` that plans tutorial or screen-recording edits), say so in the prompt (“install only; do not use other PT video skills”) or remove or disable the conflicting folder under `~/.codex/skills/`.
+
+Use separate turns: install and verify first; generate in a new message.
+
+Safer paste you can send to Codex:
+
+```text
+Run this as an install only (do not invoke any skill yet): $skill-installer install https://github.com/PowerTokens/media-skills/tree/main/plugins/powertokens-media/skills/powertokens-video Then list ~/.codex/skills/ and confirm powertokens-video.
 ```
 
 (repeat for other skills), or:

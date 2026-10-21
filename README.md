@@ -1,8 +1,8 @@
 # PowerTokens Media Skills
 
-**Agent Skills** that turn Claude Code, Codex, Cursor, and other [Agent Skills](https://agentskills.io)-compatible agents into a **Seedance / Wan / Kling / Seedream / MiniMax** video desk — one [PowerTokens](https://powertokens.ai/?utm_source=github&utm_medium=oss&utm_campaign=media-skills) API key, no Chinese phone number.
+**English** · [中文](README.zh-CN.md)
 
-> 中文：给 Claude Code / Codex / Cursor 装上 Seedance、Wan、可灵、Seedream、MiniMax。一个 PowerTokens Key，直接出产品广告、UGC、分镜成片。
+**Agent Skills** that turn Claude Code, Codex, Cursor, and other [Agent Skills](https://agentskills.io)-compatible agents into a **Seedance / Wan / Kling / Seedream / MiniMax** video desk — one [PowerTokens](https://powertokens.ai/?utm_source=github&utm_medium=oss&utm_campaign=media-skills) API key, no Chinese phone number required.
 
 <p align="center">
   <a href="https://agentskills.io"><img src="https://img.shields.io/badge/Agent_Skills-compatible-111111?style=flat-square" alt="Agent Skills"></a>
@@ -33,7 +33,7 @@ People are already shipping **Seedance 2.5 / 2.0 Mini** clips from coding agents
 | You burn credits before you know the cost | `pipeline.py plan` → approve estimate → `run` (resume, no double charge) |
 | Need a full vertical ad, not one clip | Shot list → Seedream keyframes → Seedance/Wan/Kling → MiniMax VO → captions |
 
-**Trend fit:** Agent Skills marketplaces · Claude Code plugins · Seedance 2.x agent workflows · product ads / UGC / short-form 9:16 · AI video without a CN account.
+Built for: Agent Skills marketplaces, Claude Code plugins, Seedance 2.x agent workflows, product ads / UGC / short-form 9:16, and AI video without a Chinese account.
 
 ## Example: North Loop product ad
 
@@ -95,7 +95,7 @@ The agent picks the skill, calls PowerTokens, polls the job, and writes files un
 | `powertokens-ugc-ad` | UGC / talking-head ads with a consistent fictional persona |
 | `powertokens-short-drama` | Multi-shot episodes with character refs |
 | `powertokens-social-variants` | 9:16 / 1:1 / 16:9, hook A/B, cut-downs |
-| `powertokens-bilingual-voiceover` | EN + ZH VO of the same cut |
+| `powertokens-bilingual-voiceover` | English + Chinese VO of the same cut |
 | `powertokens-travel-poster` | Travel still → 3:4 collage poster (Seedream) |
 
 Scripts are plain **Python 3.8+** stdlib — nothing to `pip install`. Assembly uses `ffmpeg` if present. Paid steps always go through `pipeline.py plan` → your yes → `run --approve-estimate <total>`.
@@ -145,7 +145,7 @@ export POWERTOKENS_API_KEY="your-key"
 
 3. Check: `python3 scripts/pt_login.py status`
 
-If both an env key and a saved token exist, **`POWERTOKENS_API_KEY` wins**. Browser OAuth (`pt_login.py login`) lands later when PowerTokens publishes it — **Key-first is enough to ship**.
+If both an env key and a saved token exist, **`POWERTOKENS_API_KEY` wins**. Browser OAuth (`pt_login.py login`) lands later when PowerTokens publishes it — **API Key is enough to ship today**.
 
 ## Models
 
@@ -158,13 +158,13 @@ If both an env key and a saved token exist, **`POWERTOKENS_API_KEY` wins**. Brow
 | Video | `dreamina-seedance-2-5-260628` | **Seedance 2.5** — longer / higher-end clips |
 | Video | `kling-v3` | Kling v3, 3–15 s, up to 4K |
 | Image | `seedream-4-5-251128` (default), `seedream-5-0-260128`, `dola-seedream-5-0-pro-260628` | Up to 14 refs |
-| Speech | `speech-2.8-turbo` (default), `speech-2.8-hd` | MiniMax; EN / ZH / JA + |
+| Speech | `speech-2.8-turbo` (default), `speech-2.8-hd` | MiniMax; English, Chinese, Japanese, and more |
 
 Live ids: `python3 scripts/pt_models.py --filter seedance`. Prices: [powertokens.ai/models](https://powertokens.ai/models?utm_source=github&utm_medium=oss&utm_campaign=media-skills). Use `--dry-run` before spending.
 
 ## Prefer a GUI?
 
-[PowerTokens Video Studio](https://github.com/PowerTokens/video-studio) — same models, side-by-side compare and batch gen.
+[PowerTokens Video Studio](https://github.com/PowerTokens/video-studio) — same models, side-by-side compare and batch generation.
 
 ## Development
 

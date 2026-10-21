@@ -1,19 +1,34 @@
 # Product ad workflow details
 
+## Copy first (do not skip)
+
+Follow `copy.md` before any keyframe spend:
+
+1. Claim sheet from user brief / provided PDP / visible pack only.
+2. Reject mood-only and generic lines (`First light.`, `Premium adventure.`, brand-swappable praise).
+3. Hook ≤2 s must carry a **verified** benefit or pattern break tied to that benefit.
+4. Captions compress the same claims as VO; kinetic style shortens wording, never changes the fact.
+
 ## Hook formulas (first 1–2 s, on-screen + VO)
-- Result first: "6 a.m. Still hot."
-- Pattern break: unexpected visual (product in an odd place) + question caption.
-- Pain point: "Tired of cold coffee by 10?"
-- Demo first: the product doing its job in the first frame.
-Write 2–3 hooks; use the rest as A/B variants (powertokens-social-variants).
+
+Only use a formula when the embedded claim is on the claim sheet:
+
+- Result first: "6 a.m. Still hot." (hold-time approved)
+- Pattern break: unexpected visual + question that names the pain the product solves
+- Pain point: "Tired of cold coffee by 10?" (only if that failure mode is user-true)
+- Demo first: product doing the claimed job in frame 1; caption states the claim, not the scenery
+
+Write 2–3 hooks; use the rest as A/B variants (`powertokens-social-variants`).
+If every draft fails the `copy.md` reject list, ask the user for sharper facts — do not ship atmospheric filler.
 
 ## Storyboard template (15 s, 9:16)
-| # | Cut length | Shot | Motion/camera | Caption | VO |
+
+| # | Cut length | Shot | Motion/camera | Caption (claim) | VO |
 |---|---|---|---|---|---|
-| 1 | 2 s | hero close-up, product in context | slow push-in | hook | hook line |
-| 2 | 3 s | product in use | static or handheld | benefit 1 | benefit line |
-| 3 | 3 s | detail/macro | orbit | benefit 2 | proof line |
-| 4 | 3 s | lifestyle wide | pull-back | — | — |
+| 1 | 2 s | hero close-up, product in context | slow push-in | hook claim | hook line |
+| 2 | 3 s | product in use / proof demo | static or handheld | benefit 1 | benefit line |
+| 3 | 3 s | detail/macro of the mechanism | orbit | benefit 2 / proof | proof line |
+| 4 | 3 s | lifestyle wide only if it still sells a claim | pull-back | optional short claim | — |
 | 5 | 3 s | packshot on clean bg | slow rotate | CTA | CTA line |
 
 Generate each at the model minimum or 4–5 s and let assembly trim; or keep durations equal to cut length where the model allows (Wan ≥ 2 s, Kling ≥ 3 s, Seedance ≥ 4 s).

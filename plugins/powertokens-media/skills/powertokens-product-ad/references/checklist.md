@@ -1,13 +1,15 @@
 # Delivery checklist
+- [ ] Claim sheet shown to user: each hook/caption/VO/end-card line maps to a sourced claim (`references/copy.md`)
+- [ ] No mood-only or brand-swappable lines; hooks encode a verified benefit in ≤ 2 s
+- [ ] Captions match VO meaning; kinetic shortening did not invent or drop facts
 - [ ] Product bible filled in order: **category → subtype → parts BOM → forbid** (+ colors, logos, proportions, 1–3 refs)
 - [ ] Shot list has `"kind": "product-ad"` and `"product_bible"`; `pipeline validate` passes
 - [ ] PRODUCT LOCK constraints present on every keyframe + i2v prompt (pipeline injects from bible)
 - [ ] Same approved product refs reused across product-visible shots; no invented hybrid parts
 - [ ] Hero / packshot keyframes human-OK (or vision QC pass) before i2v
-- [ ] Hook lands in ≤ 2 s; product visible by 3 s
-- [ ] Product shape, label and colors match the real product in every shot
-- [ ] No invented claims, prices, awards, or certifications; captions match VO; end-card price only if user-provided
-- [ ] Captions inside safe area (not under platform UI at bottom/right; prefer ~60% height)
+- [ ] Product visible by 3 s; shape, label and colors match the real product in every shot
+- [ ] No invented claims, prices, awards, or certifications; end-card price only if user-provided
+- [ ] Captions inside safe area (not under platform UI at bottom/right; prefer ~60% height); default style `tiktok` (A)
 - [ ] Seedance i2v: no `ratio` param (follows first frame); keyframe already at platform ratio
 - [ ] Ratio correct for the platform; duration within platform limits
 - [ ] Audio levels: VO clear over ambience / ducked BGM; no clipping

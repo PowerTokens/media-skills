@@ -4,19 +4,20 @@ description: Produce a short vertical product ad (TikTok, Reels, Shorts, paid so
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.3.1"
+  version: "0.3.2"
 ---
 
 # Product ad (image → vertical ad)
 
 Scripts: `scripts/pipeline.py` (+ video/image/speech). References:
-`references/workflow.md` (detailed steps, hook formulas, storyboard template),
+`references/copy.md` (**required** — claim sources, hook/caption reject list),
+`references/workflow.md` (steps, storyboard template),
 `references/checklist.md` (QA before delivery). Example: `examples/product-ad.json`.
 
 ## Workflow
-1. **Brief** — product photo(s), name, 1–3 true selling points, audience, platform, CTA, length (default 15 s, 9:16). Ask only for what is missing.
-2. **Script** — hook (≤ 2 s) → problem/desire → product moment → proof/benefit → CTA. 30–40 words VO for 15 s.
-3. **Storyboard** — 4–6 shots of 2–4 s; one action + one camera move each; caption per shot. Show it as a table.
+1. **Brief** — product photo(s), name, audience, platform, CTA, length (default 15 s, 9:16). Collect **1–3 true selling points with sources** (user / PDP / pack). If benefits are vague, ask — do not invent numbers or praise.
+2. **Claim sheet + script** — build `claim | source | where used` (see `references/copy.md`). Hook (≤ 2 s) must encode a verified claim, not mood. Then problem/desire → product moment → proof → CTA. 30–40 words VO for 15 s. Show the claim sheet; wait for yes before spending.
+3. **Storyboard** — 4–6 shots of 2–4 s; one action + one camera move each; **caption = compressed claim** (not a scene title). Show it as a table with captions + VO mapped to claim rows.
 4. **Route** — drafts `wan3.0-video` 480p/720p; hero product turn `kling-v3` 1080p; see powertokens-model-routing.
 5. **Keyframes** — Seedream with the real packshot as reference at 9:16 (`keyframe` in the shot list) so the product stays accurate.
 6. **Shot list** → `validate` → `plan` → approval → `run`.

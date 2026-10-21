@@ -53,6 +53,10 @@ If the shot list is a product ad, set `"kind": "product-ad"` and `"product_bible
 
 With a first frame / keyframe, Seedance rejects `ratio` (HTTP 400). `video.py` omits it automatically; generate keyframes at the target aspect.
 
+## Caption copy (content ≠ style)
+
+Burn-in style defaults to kinetic TikTok **A** (`tiktok` yellow word highlight). **Wording** comes from the shot list: `shots[].caption`, or for `finish.py` from `voiceover.lines[].caption` / `.text` (shot captions only if there is no VO). Authors must follow product-ad `references/copy.md`: sourced claims only, reject mood-only lines, show a claim sheet before spend.
+
 ## Finish / kinetic captions (optional)
 
 After `assemble`, optional polish (no credits):

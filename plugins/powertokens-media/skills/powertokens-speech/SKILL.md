@@ -16,10 +16,8 @@ Scripts are in `scripts/` next to this file (`python3` 3.8+, stdlib only). Outpu
 Run `python3 scripts/pt_login.py status`.
 
 - `ok: true` → go ahead.
-- `ok: false` → tell the user they need a PowerTokens account and offer the two ways in:
-  1. **Browser sign-in (default):** `python3 scripts/pt_login.py login` opens PowerTokens in the browser and saves a token to `~/.config/powertokens/`. If it returns `LOGIN_UNAVAILABLE`, browser sign-in is not live yet; use option 2.
-  2. **API key:** the user creates a key at https://powertokens.ai/api-keys?utm_source=media-skills&utm_medium=skill&utm_campaign=media-skills and sets `POWERTOKENS_API_KEY` in their shell.
-  New users sign up at https://powertokens.ai/?utm_source=media-skills&utm_medium=skill&utm_campaign=media-skills.
+- `ok: false` → the user needs a PowerTokens API key. They create one at https://powertokens.ai/api-keys?utm_source=media-skills&utm_medium=skill&utm_campaign=media-skills and set `POWERTOKENS_API_KEY` in their shell. New users sign up at https://powertokens.ai/?utm_source=media-skills&utm_medium=skill&utm_campaign=media-skills.
+  Browser sign-in (`pt_login.py login`) is not enabled yet; it will come in a later release when PowerTokens publishes OAuth.
 
 Never ask the user to paste a key into the chat, never write a key into files, never print it.
 

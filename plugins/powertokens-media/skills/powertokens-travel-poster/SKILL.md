@@ -38,7 +38,7 @@ Fallback models if needed: `dola-seedream-5-0-pro-260628` (higher quality, likel
 
 ## Before spending
 
-- Credentials: `python3 scripts/pt_login.py status`. If not ok: `python3 scripts/pt_login.py login` (browser; if `LOGIN_UNAVAILABLE`, user sets `POWERTOKENS_API_KEY` from https://powertokens.ai/api-keys?utm_source=media-skills&utm_medium=skill&utm_campaign=media-skills). Never ask for the key in chat.
+- Credentials: `python3 scripts/pt_login.py status`. If not ok: user creates a key at https://powertokens.ai/api-keys?utm_source=media-skills&utm_medium=skill&utm_campaign=media-skills and sets `POWERTOKENS_API_KEY`. Never ask for the key in chat.
 - One image = one charge. No batch without a fresh yes per image.
 - `INSUFFICIENT_CREDITS` → stop and tell the user. Do not invent destinations, people, or brand logos that are not in the photo.
 

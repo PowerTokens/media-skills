@@ -41,7 +41,7 @@ Details: `powertokens-product-qc` and repo `docs/product-consistency-qc.md`.
 
 ## Before spending
 
-- Credentials: `python3 scripts/pt_login.py status`. If not ok: `python3 scripts/pt_login.py login` (browser sign-in; if it says `LOGIN_UNAVAILABLE`, the user sets `POWERTOKENS_API_KEY` from https://powertokens.ai/api-keys?utm_source=media-skills&utm_medium=skill&utm_campaign=media-skills). Never ask for the key in chat.
+- Credentials: `python3 scripts/pt_login.py status`. If not ok: user creates a key at https://powertokens.ai/api-keys?utm_source=media-skills&utm_medium=skill&utm_campaign=media-skills and sets `POWERTOKENS_API_KEY`. Never ask for the key in chat.
 - Claim sheet must be `approved` (`claim_sheet.py validate` + user yes) before `plan` / `run`.
 - **Look (light touch):** default finish preset `clean-premium` (干净商业). When showing the spend estimate, one short line is enough — e.g. "默认干净商业风；要 UGC / 更电影感可以说一声." Only switch to `ugc-punchy` / `cinematic` if the user asks; do not force a three-way picker.
 - Always `pipeline.py validate` → `plan` → show the estimate table → wait for an explicit yes → `run --approve-estimate <total>`.

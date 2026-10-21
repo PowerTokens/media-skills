@@ -85,15 +85,15 @@ Other tools that support the Agent Skills `SKILL.md` format can use the folders 
 
 ## Connect your PowerTokens account
 
-**Option A — browser sign-in (coming soon).** The first time you generate something, the agent runs `scripts/pt_login.py login`, your browser opens PowerTokens, you sign in or sign up, and you're done. The token is stored in `~/.config/powertokens/credentials.json` (file mode 600).
-
-**Option B — API key.** Create a key at [powertokens.ai/api-keys](https://powertokens.ai/api-keys?utm_source=github&utm_medium=oss&utm_campaign=media-skills) and add it to your shell profile:
+Create a key at [powertokens.ai/api-keys](https://powertokens.ai/api-keys?utm_source=github&utm_medium=oss&utm_campaign=media-skills) and add it to your shell profile:
 
 ```bash
 export POWERTOKENS_API_KEY="your-key"
 ```
 
-If both exist, `POWERTOKENS_API_KEY` wins. Check with `python3 scripts/pt_login.py status`. Don't paste keys into the chat; the skills never print them.
+Check with `python3 scripts/pt_login.py status`. Don't paste keys into the chat; the skills never print them. If both an env key and a saved token exist, `POWERTOKENS_API_KEY` wins.
+
+Browser sign-in (`pt_login.py login`) will come in a later release when PowerTokens publishes OAuth. Until then, an API key is required.
 
 ## Models
 

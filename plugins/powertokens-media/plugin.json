@@ -13,7 +13,7 @@
       "interface": {
         "displayName": "PowerTokens Media",
         "shortDescription": "Make videos, images and voiceovers with Seedance, Wan, Kling, Seedream and MiniMax",
-        "longDescription": "Skills that let Codex generate text-to-video, image-to-video, text-to-image and text-to-speech through the PowerTokens API, saving files to ./outputs. Sign in once in the browser or use a PowerTokens API key.",
+        "longDescription": "Skills that let Codex generate text-to-video, image-to-video, text-to-image and text-to-speech through the PowerTokens API, saving files to ./outputs. Use a PowerTokens API key (export POWERTOKENS_API_KEY).",
         "developerName": "PowerTokens",
         "category": "Productivity",
         "websiteURL": "https://powertokens.ai",

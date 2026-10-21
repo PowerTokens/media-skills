@@ -16,7 +16,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import pt_common as pt  # noqa: E402
 
-# Mirrors PowerTokens Video Studio models.py (checked 2026-10-05). USD per output second.
+# List prices from powertokens.ai/pricing (promo list checked 2026-10-21; actual billing may change). USD per output second.
 MODELS = {
     "wan3.0-video": dict(family="wan", name="Wan 3.0", durations=(2, 30), res=("480p", "720p", "1080p"),
                          ratios=("16:9", "9:16", "1:1", "4:3", "3:4", "adaptive"),
@@ -28,7 +28,11 @@ MODELS = {
     "dreamina-seedance-2-0-fast-260128": dict(family="seedance", name="Seedance 2.0 Fast", durations=(4, 15),
                                               res=("480p", "720p"),
                                               ratios=("16:9", "9:16", "1:1", "4:3", "3:4", "21:9", "adaptive"),
-                                              price={"480p": 0.121, "720p": 0.121}),
+                                              price={"480p": 0.061, "720p": 0.061}),
+    "dreamina-seedance-2-0-mini-260615": dict(family="seedance", name="Seedance 2.0 Mini", durations=(4, 15),
+                                              res=("480p", "720p"),
+                                              ratios=("16:9", "9:16", "1:1", "4:3", "3:4", "21:9", "adaptive"),
+                                              price={"480p": 0.031, "720p": 0.031}),
     "dreamina-seedance-2-5-260628": dict(family="seedance", name="Seedance 2.5", durations=(4, 30),
                                          res=("480p", "720p", "1080p"),
                                          ratios=("16:9", "9:16", "1:1", "4:3", "3:4", "21:9", "adaptive"),
@@ -38,6 +42,7 @@ MODELS = {
 }
 ALIASES = {"wan": "wan3.0-video", "wan3": "wan3.0-video", "wan-prime": "wan3.0-video-prime",
            "seedance": "dreamina-seedance-2-0-fast-260128", "seedance-fast": "dreamina-seedance-2-0-fast-260128",
+           "seedance-mini": "dreamina-seedance-2-0-mini-260615",
            "seedance-2.5": "dreamina-seedance-2-5-260628", "kling": "kling-v3"}
 DEFAULT_MODEL = "wan3.0-video"
 KLING_MODE = {"720p": "std", "1080p": "pro", "4k": "4k"}

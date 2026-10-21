@@ -33,6 +33,18 @@ class VideoTests(unittest.TestCase):
         self.assertEqual(body["media"][0], {"type": "text", "text": "fox"})
         self.assertEqual(body["media"][1]["type"], "first_frame")
 
+    def test_seedance_mini_alias_and_build(self):
+        mid = video.resolve("seedance-mini")
+        self.assertEqual(mid, "dreamina-seedance-2-0-mini-260615")
+        self.assertEqual(video.resolve("seedance"), "dreamina-seedance-2-0-fast-260128")
+        self.assertEqual(video.resolve("seedance-fast"), "dreamina-seedance-2-0-fast-260128")
+        ep, body = video.build(mid, "fox", 4, "720p", "9:16")
+        self.assertEqual(ep, "/v1/videos")
+        self.assertEqual(body["model"], mid)
+        self.assertEqual(body["seconds"], "4")
+        self.assertEqual(video.estimate(mid, 4, "720p"), 0.124)
+        self.assertEqual(video.estimate("dreamina-seedance-2-0-fast-260128", 4, "720p"), 0.244)
+
     def test_kling_i2v_route(self):
         ep, body = video.build("kling-v3", "spin", 5, "1080p", "16:9", image="https://example.com/a.png")
         self.assertEqual(ep, "/kling/v1/videos/image2video")

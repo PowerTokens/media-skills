@@ -101,7 +101,8 @@ Browser sign-in (`pt_login.py login`) will come in a later release when PowerTok
 |---|---|---|
 | Video | `wan3.0-video` (default) | 2–30 s, 480p–1080p, native audio |
 | Video | `wan3.0-video-prime` | Same as Wan 3.0, faster |
-| Video | `dreamina-seedance-2-0-fast-260128` | Seedance 2.0 Fast, 4–15 s, up to 720p |
+| Video | `dreamina-seedance-2-0-mini-260615` | Seedance 2.0 Mini, 4–15 s, up to 720p; promo ~$0.031/s (~60% off) |
+| Video | `dreamina-seedance-2-0-fast-260128` | Seedance 2.0 Fast, 4–15 s, up to 720p; promo ~$0.061/s |
 | Video | `dreamina-seedance-2-5-260628` | Seedance 2.5, 4–30 s, up to 1080p |
 | Video | `kling-v3` | Kling v3, 3–15 s, 720p / 1080p / 4K |
 | Image | `seedream-4-5-251128` (default), `seedream-5-0-260128`, `dola-seedream-5-0-pro-260628` | 2K / 4K or custom size, up to 14 reference images |

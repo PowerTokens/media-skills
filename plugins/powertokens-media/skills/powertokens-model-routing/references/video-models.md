@@ -1,15 +1,17 @@
 # Video models on PowerTokens
 
 Limits and list prices below are copied from PowerTokens Video Studio `models.py`
-(PRICE_CHECKED_DATE 2026-10-05) and the PT API docs. Prices are USD per output second for a typical
-text-to-video request; billing can change and some inputs (e.g. input video) may price differently.
+(promo list checked 2026-10-21 from powertokens.ai/pricing; earlier copy used Video Studio models.py
+2026-10-05). Prices are USD per output second for a typical text-to-video request without video input;
+promo rates can change and some inputs (e.g. input video) may price differently.
 Always confirm on https://powertokens.ai/models before quoting a firm number.
 
 | Model id | Seconds | Resolutions | Ratios | List USD/s | Inputs |
 |---|---|---|---|---|---|
 | `wan3.0-video` | 2–30 | 480p 0.05 · 720p 0.10 · 1080p 0.20 | 16:9 9:16 1:1 4:3 3:4 adaptive | see col 3 | text, first_frame, first+last frame, reference_image/video/audio |
 | `wan3.0-video-prime` | 2–30 | 480p 0.068 · 720p 0.14 · 1080p 0.28 | same as Wan 3.0 | see col 3 | same as Wan 3.0, faster |
-| `dreamina-seedance-2-0-fast-260128` | 4–15 | 480p 0.121 · 720p 0.121 | 16:9 9:16 1:1 4:3 3:4 21:9 adaptive | see col 3 | text, first/last frame, multimodal reference |
+| `dreamina-seedance-2-0-mini-260615` | 4–15 | 480p 0.031 · 720p 0.031 | 16:9 9:16 1:1 4:3 3:4 21:9 adaptive | see col 3 | text, first/last frame, multimodal reference (promo) |
+| `dreamina-seedance-2-0-fast-260128` | 4–15 | 480p 0.061 · 720p 0.061 | 16:9 9:16 1:1 4:3 3:4 21:9 adaptive | see col 3 | text, first/last frame, multimodal reference (promo) |
 | `dreamina-seedance-2-5-260628` | 4–30 | 480p 0.105 · 720p 0.232 · 1080p 0.569 | same as Seedance Fast | see col 3 | text, first/last frame, reference_image/video/audio |
 | `kling-v3` | 3–15 | 720p(std) 0.126 · 1080p(pro) 0.168 · 4K 0.42 | 16:9 9:16 1:1 | with audio | text, first frame, last frame (image_tail) |
 
@@ -22,7 +24,8 @@ Notes from the docs:
   `omni_reference_task_type` = auto/reference/edit/extend. **Do not pass `ratio` with first_frame /
   first-last-frame** (HTTP 400 TaskTypeConstraint); output aspect follows the first frame — keyframe
   at target ratio. Source: https://docs.powertokens.ai/en/zmodelVideo/byteplus/dreamina-seedance-2-5-multimodal-reference-to-video
-- Seedance 2.0 Fast: 4–15 s, no 1080p. Source: https://docs.powertokens.ai/en/zmodelVideo/byteplus/dreamina-seedance-2-0-fast-text-to-video
+- Seedance 2.0 Mini: 4–15 s, no 1080p; cheapest Seedance promo (~$0.031/s). Same family API path as Fast.
+- Seedance 2.0 Fast: 4–15 s, no 1080p; promo ~$0.061/s. Source: https://docs.powertokens.ai/en/zmodelVideo/byteplus/dreamina-seedance-2-0-fast-text-to-video
 - Kling v3: prompt and negative_prompt max 2,500 characters; native multi-shot (`multi_shot`,
   up to 6 shots, 512 chars each, durations must sum to total) exists in the API but is not wired in
   these scripts; image-to-video supports up to 3 reference elements (not wired).
@@ -33,7 +36,7 @@ Notes from the docs:
 Estimated cost = list USD/s × seconds. Example: Wan 3.0 720p 5 s ≈ $0.50.
 
 ## Live check (2026-10-20, authenticated GET /v1/models, test account)
-All five model ids above are listed. Real test generations succeeded for `wan3.0-video` (480p, 2 s,
+The previously shipped model ids above are listed (Mini may appear once the account exposes it). Real test generations succeeded for `wan3.0-video` (480p, 2 s,
 9:16 → 480×854) and `dreamina-seedance-2-0-fast-260128` (480p, 4 s, 9:16 with one reference image →
 496×864, 4.04 s). Other video ids the account also lists (not covered by this pack): wan2.x, other
 Seedance/Kling versions, Vidu, MiniMax Hailuo and `MiniMax-H3-Max`. Per-account lists can differ.

@@ -29,20 +29,21 @@ Do **not** jump to lid-specific fields. Always:
 1. **Category（商品大类）** — e.g. drinkware, footwear, bag, beauty, consumer_electronics.
 2. **Subtype（具体分型）** — e.g. dual-lid thermos, lace-up running shoe, top-zip tote.
 3. **Parts BOM（组成拆解）** — decompose into `immutable.parts`: `{id, role, how, states?}` for body, openings, closures, hardware, labels, accessories, etc.
-4. **Forbid / finish** — write `forbid` from part risks; then colors, logos, proportions, 1–3 refs.
-5. **Validate**:
+4. **Forbid / finish** — write `forbid` from part risks; then colors, logos, proportions, 1–5 refs (hero + optional part-detail).
+5. **Part-detail refs → unify** — if a part is unclear on the hero packshot, find a part-detail image, tag `kind: part_detail` + `part: <id>`, then **unify onto the hero product** (body/proportions/scene stay; only that part changes). Never regenerate from the part crop alone.
+6. **Validate**:
 
 ```bash
 python3 scripts/product_qc.py validate-bible path/to/product-bible.json
 ```
 
-6. **Constraints** — append to every keyframe / i2v prompt (do not skip):
+7. **Constraints** — append to every keyframe / i2v prompt (do not skip):
 
 ```bash
 python3 scripts/product_qc.py constraints path/to/product-bible.json
 ```
 
-7. **Shot list** — set `"kind": "product-ad"` and `"product_bible": "product-bible.json"`. Then:
+8. **Shot list** — set `"kind": "product-ad"` and `"product_bible": "product-bible.json"`. Then:
 
 ```bash
 python3 scripts/pipeline.py validate shots.json
@@ -52,7 +53,7 @@ python3 scripts/pipeline.py plan shots.json
 
 Validate/plan/run **refuse** if kind is product-ad and the bible is missing or invalid (`--require-product-bible` forces the gate for other kinds).
 
-8. **After each Seedream keyframe** — build the vision chat body (cheap multimodal; default model candidate `MiniMax-M3`, alts `glm-5.2` / `glm-5.1` / `glm-5-turbo` — confirm with `pt_models.py` and that image inputs work):
+9. **After each Seedream keyframe** — build the vision chat body (cheap multimodal; default model candidate `MiniMax-M3`, alts `glm-5.2` / `glm-5.1` / `glm-5-turbo` — confirm with `pt_models.py` and that image inputs work):
 
 ```bash
 python3 scripts/product_qc.py vision-prompt bible.json --keyframe outputs/.../kf_s01.png --ref product.jpg
@@ -66,7 +67,7 @@ python3 scripts/product_qc.py parse-verdict '{"pass":false,"failures":["hybrid p
 
 On fail: one regenerate with corrected negatives from `failures`, re-check; still fail → stop for human. On pass: optional human OK for hero frames → i2v.
 
-9. **Shot-to-shot** — reuse the same bible refs; compare structure modes / part states across keyframes before assembly.
+10. **Shot-to-shot** — reuse the same bible refs; compare structure modes / part states across keyframes before assembly.
 
 Avoid `kling-video-o1*`. Never promote deepseek-v4-* chat/image ids. Do not invent product claims. Vision support for chat model ids is **not fully verified** in this repo — if images are rejected, keep bible + constraints + human approve.
 

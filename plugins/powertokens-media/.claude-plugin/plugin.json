@@ -1,10 +1,35 @@
 {
   "name": "powertokens-media",
-  "version": "0.2.0",
-  "description": "Generate video (Seedance, Wan, Kling), images (Seedream) and speech (MiniMax) from your coding agent with one PowerTokens account.",
-  "author": { "name": "PowerTokens", "url": "https://powertokens.ai" },
+  "version": "0.3.0",
+  "description": "Agent Skills for Seedance 2.5 / Mini / Fast, Wan, Kling, Seedream and MiniMax via PowerTokens \u2014 product ads, UGC, pipeline, product bible QC. One API key; Claude Code / Codex / Cursor.",
+  "author": {
+    "name": "PowerTokens",
+    "url": "https://powertokens.ai"
+  },
   "homepage": "https://github.com/PowerTokens/media-skills",
   "repository": "https://github.com/PowerTokens/media-skills",
   "license": "MIT",
-  "keywords": ["video-generation", "image-generation", "text-to-speech", "seedance", "wan", "kling", "seedream"]
+  "keywords": [
+    "agent-skills",
+    "claude-code",
+    "codex",
+    "cursor",
+    "seedance",
+    "seedance-2.5",
+    "seedance-mini",
+    "wan",
+    "kling",
+    "seedream",
+    "minimax",
+    "ai-video",
+    "text-to-video",
+    "image-to-video",
+    "product-ad",
+    "ugc",
+    "tiktok",
+    "video-generation",
+    "image-generation",
+    "text-to-speech",
+    "powertokens"
+  ]
 }

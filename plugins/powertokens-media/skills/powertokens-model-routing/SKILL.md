@@ -4,7 +4,7 @@ description: Pick the right PowerTokens model (Wan 3.0, Wan 3.0 Prime, Seedance 
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.2.0"
+  version: "0.2.1"
 ---
 
 # PowerTokens model routing
@@ -35,3 +35,6 @@ Rules of thumb:
 6. Confirm availability with `python3 scripts/pt_models.py --filter <family>` when unsure; if a model id is not listed for the user's account, do not use it.
 
 Do not route to models not listed here, even if the account exposes more.
+
+7. Seedance **first-frame i2v:** do not send `ratio` (API 400); output follows the first frame — keyframe at target aspect. `video.py` omits `ratio` automatically when a first/last frame is present.
+8. Never promote undocumented chat/image ids or Avoid `kling-video-o1*` video ids — stay on the table above.

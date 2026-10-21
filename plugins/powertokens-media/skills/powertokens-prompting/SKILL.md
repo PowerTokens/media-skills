@@ -4,7 +4,7 @@ description: Write and fix prompts for PowerTokens video, image and voice models
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.2.0"
+  version: "0.2.1"
 ---
 
 # Prompting PowerTokens models
@@ -28,3 +28,9 @@ Core rules:
 4. Put spoken lines in double quotes and say who speaks; keep lines short (≈ 2.5 words/second).
 5. No brand claims, prices or certifications that the user did not provide.
 6. Iterate by changing one variable at a time; keep the seed (Wan/Seedance) when comparing.
+
+## Product / character identity
+
+- Physical SKUs: use `powertokens-product-qc` bible (category → subtype → parts) — do not rely on "label unchanged" alone.
+- Characters (drama / UGC): identical `characters.<id>.description` + `ref_image` every shot; see short-drama consistency.
+- Seedance first-frame i2v: never send `ratio` (see `references/seedance.md` / pitfalls).

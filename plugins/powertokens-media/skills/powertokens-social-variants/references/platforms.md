@@ -9,5 +9,5 @@
 Variant matrix example (one product, 3 hooks × 2 ratios = 6 files; only 3 hook shots regenerated
 per ratio when cropping does not work).
 
-Naming: `thermos-9x16-hookA.mp4`. Track which hook wins in the user's ad platform; this pack does
+Naming: `<project>-9x16-hookA.mp4`. Track which hook wins in the user's ad platform; this pack does
 not read ad metrics.

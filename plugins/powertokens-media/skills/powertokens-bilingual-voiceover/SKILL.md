@@ -4,7 +4,7 @@ description: Create English and Chinese (Mandarin/Cantonese) voiceovers and dubb
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.2.0"
+  version: "0.2.1"
 ---
 
 # Bilingual EN/ZH voiceover
@@ -26,3 +26,5 @@ Reference: `references/adaptation.md` (timing, voice pairs, caption rules). Exam
 - `INSUFFICIENT_CREDITS` → stop and tell the user. Timeouts → run the same command again (resumes, no double charge).
 
 Captions in Chinese need a CJK font on the machine for burning (e.g. Noto Sans CJK); set `assembly.caption_style` FontName accordingly, or deliver the SRT unburned (`--no-captions`).
+
+Do not invent product claims when adapting EN↔ZH; keep meaning and length, not marketing upgrades.

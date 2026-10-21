@@ -41,9 +41,9 @@ You ask in plain language; the agent picks the skill, calls the API, waits for t
 | `powertokens-social-variants` | 9:16 / 1:1 / 16:9 variants, hook A/B tests, cut-downs |
 | `powertokens-bilingual-voiceover` | English + Chinese voiceover versions of the same video |
 | `powertokens-travel-poster` | Travel / photo still → 3:4 「第二世界」collage poster (Seedream) |
-| `powertokens-product-qc` | Product bible + keyframe vision QC so lids/logos stay correct |
+| `powertokens-product-qc` | Generic product bible (category → subtype → parts) + prompt lock + keyframe vision QC |
 
-Scripts are plain Python 3.8+ standard library. Nothing to `pip install`. Final assembly uses `ffmpeg` if installed.
+Scripts are plain Python 3.8+ standard library. Nothing to `pip install`. Final assembly uses `ffmpeg` if installed. Optional polish: `finish.py` / `captions.py` (synced into pipeline-style skills).
 
 Paid steps always show an estimate first: `pipeline.py plan` → you approve → `pipeline.py run --approve-estimate <total>`.
 

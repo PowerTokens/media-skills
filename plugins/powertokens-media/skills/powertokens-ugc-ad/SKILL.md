@@ -4,7 +4,7 @@ description: Make UGC-style and talking-head ads — selfie-style creator testim
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.2.0"
+  version: "0.2.1"
 ---
 
 # UGC / talking-head ad
@@ -30,3 +30,5 @@ References: `references/workflow.md` (formats, scripts, two production routes),
 - `INSUFFICIENT_CREDITS` → stop and tell the user. Timeouts → run the same command again (resumes, no double charge).
 
 Disclose AI-generated personas where the platform or law requires it; never fake reviews or results.
+
+When the product pack is visible and must stay accurate, also follow `powertokens-product-qc` (or set `product_bible` on the shot list).

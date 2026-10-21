@@ -4,7 +4,7 @@ description: Turn a JSON shot list into a finished video with PowerTokens — Se
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.2.0"
+  version: "0.2.1"
 ---
 
 # PowerTokens shot-list pipeline
@@ -34,3 +34,22 @@ Schema: `references/shotlist-schema.md`. Examples: `examples/*.json`.
 10. **Variants (free):** `python3 scripts/pipeline.py reformat final.mp4 --ratio 1:1 --mode crop|pad`.
 
 Report: final path, duration, what was spent (estimate), anything not generated.
+
+## Product ads / identity lock
+
+If the shot list is a product ad, set `"kind": "product-ad"` and `"product_bible": "<file>.json"` (category → subtype → parts BOM). `validate` / `plan` / `run` refuse without a valid bible. When a bible is present, the pipeline **auto-appends** PRODUCT LOCK constraints to every shot and Seedream keyframe prompt, and merges existing bible refs into keyframe refs only (not Wan/Kling i2v).
+
+## Seedance i2v
+
+With a first frame / keyframe, Seedance rejects `ratio` (HTTP 400). `video.py` omits it automatically; generate keyframes at the target aspect.
+
+## Finish / kinetic captions (optional)
+
+After `assemble`, optional polish (no credits):
+
+```bash
+python3 scripts/finish.py finish shots.json --preset clean-premium
+python3 scripts/captions.py preview base.mp4 --style tiktok --text "…" --start 0.3 --end 2.9
+```
+
+`finish.py` end-card `price` / headlines must come from the user brief — never invent claims.

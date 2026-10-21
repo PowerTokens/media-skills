@@ -4,7 +4,7 @@ description: Write and produce AI short dramas and multi-shot story videos (vert
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.2.0"
+  version: "0.2.1"
 ---
 
 # Short drama (multi-shot, consistent characters)

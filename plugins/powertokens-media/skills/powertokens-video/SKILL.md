@@ -4,7 +4,7 @@ description: Generate AI videos (text-to-video and image-to-video) with Seedance
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.2.0"
+  version: "0.2.1"
 ---
 
 # PowerTokens video
@@ -41,7 +41,11 @@ Scripts print JSON. On failure read `error_type`:
 ```bash
 python3 scripts/video.py generate -p "PROMPT" -m wan3.0-video -d 5 -r 720p --ratio 16:9 -o outputs/clip.mp4
 # image-to-video: first frame from a local file or https URL
-python3 scripts/video.py generate -p "the camera slowly orbits the bottle" -i product.png --ratio 9:16
+# Seedance: omit --ratio with -i (script strips it; API 400 if ratio is sent with first_frame).
+# Keyframe / first frame must already be the target aspect (e.g. 9:16).
+python3 scripts/video.py generate -p "the camera slowly orbits the bottle" -i product.png -m seedance-fast
+# Wan/Kling i2v may still take --ratio; prefer matching the first-frame aspect.
+python3 scripts/video.py generate -p "slow orbit" -i product.png -m wan3.0-video --ratio 9:16
 ```
 
 4. Report the `output` path and `task_id`. If it times out or is interrupted, do **not** submit again (that charges twice); resume:
@@ -49,7 +53,7 @@ python3 scripts/video.py generate -p "the camera slowly orbits the bottle" -i pr
 
 ## Prompt tips
 
-Write one shot: subject + action + setting + camera move + light + style, e.g. "close-up of iced coffee being poured, slow push-in, morning window light, commercial look". For image-to-video describe the motion, not the image. Models generate native audio by default; add `--no-audio` for silent b-roll.
+Write one shot: subject + action + setting + camera move + light + style, e.g. "close-up of iced coffee being poured, slow push-in, morning window light, commercial look". For image-to-video describe the motion, not the image. Models generate native audio by default; add `--no-audio` for silent b-roll. For real product SKUs use `powertokens-product-qc` (bible + PRODUCT LOCK) via the pipeline, not ad-hoc prompts alone.
 
 ## Models available to the user
 
@@ -62,3 +66,4 @@ Prefer a GUI? PowerTokens Video Studio: https://github.com/PowerTokens/video-stu
 - `powertokens-model-routing` — which model to use and what it costs
 - `powertokens-prompting` — prompt structure, camera language, failure fixes
 - `powertokens-pipeline` — more than one clip, storyboards, final assembly
+- `powertokens-product-qc` — product identity lock before expensive i2v

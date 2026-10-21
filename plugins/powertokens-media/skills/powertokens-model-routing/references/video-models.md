@@ -19,8 +19,9 @@ Notes from the docs:
   exclusive. Source: https://docs.powertokens.ai/en/zmodelVideo/ali/wan3.0-video-generation
 - Seedance 2.5: `generate_audio` makes voice, SFX and music from the prompt; put dialogue in double
   quotes; audio is mono. `return_last_frame` can chain clips (not exposed by these scripts yet).
-  `omni_reference_task_type` = auto/reference/edit/extend. Image-to-video crops the image if the
-  ratio differs. Source: https://docs.powertokens.ai/en/zmodelVideo/byteplus/dreamina-seedance-2-5-multimodal-reference-to-video
+  `omni_reference_task_type` = auto/reference/edit/extend. **Do not pass `ratio` with first_frame /
+  first-last-frame** (HTTP 400 TaskTypeConstraint); output aspect follows the first frame — keyframe
+  at target ratio. Source: https://docs.powertokens.ai/en/zmodelVideo/byteplus/dreamina-seedance-2-5-multimodal-reference-to-video
 - Seedance 2.0 Fast: 4–15 s, no 1080p. Source: https://docs.powertokens.ai/en/zmodelVideo/byteplus/dreamina-seedance-2-0-fast-text-to-video
 - Kling v3: prompt and negative_prompt max 2,500 characters; native multi-shot (`multi_shot`,
   up to 6 shots, 512 chars each, durations must sum to total) exists in the API but is not wired in

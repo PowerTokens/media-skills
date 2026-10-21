@@ -155,6 +155,41 @@ class AssembleTests(unittest.TestCase):
             self.assertEqual(r.stdout.strip(), "1080,1080")
 
 
+
+class SeedanceAndConstraintsTests(unittest.TestCase):
+    def test_seedance_i2v_omits_ratio(self):
+        import video
+        _ep, body = video.build(
+            "dreamina-seedance-2-0-fast-260128", "push in", 4, "720p", "9:16",
+            image="https://example.invalid/k.png")
+        self.assertNotIn("ratio", body)
+        self.assertTrue(any(m.get("type") == "first_frame" for m in body["media"]))
+        _ep2, body2 = video.build(
+            "dreamina-seedance-2-0-fast-260128", "t2v only", 4, "720p", "9:16")
+        self.assertEqual(body2.get("ratio"), "9:16")
+
+    def test_compose_prompt_injects_product_lock(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = project(tmp)
+            spec = pipeline.load(path)
+            # Clear cache if any
+            spec.pop("_bible", None)
+            text = pipeline.compose_prompt(spec, spec["shots"][0])
+            self.assertIn("PRODUCT LOCK", text)
+            self.assertIn("Structure modes", text)
+
+    def test_keyframe_refs_merge_existing_bible_refs(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = project(tmp)
+            spec = pipeline.load(path)
+            spec.pop("_bible", None)
+            # i2v ref_images must NOT auto-pull bible (Wan first_frame conflict / Kling ban)
+            self.assertEqual(pipeline.ref_images(spec, spec["shots"][0]), [])
+            refs = pipeline.keyframe_ref_images(spec, spec["shots"][0])
+            self.assertTrue(any(r.endswith("product.png") for r in refs), refs)
+            self.assertTrue(any(r.endswith("product.jpg") for r in refs), refs)
+
+
 class RepoStructureTests(unittest.TestCase):
     def test_skills_frontmatter_evals_and_banned_models(self):
         names = []

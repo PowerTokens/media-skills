@@ -36,3 +36,16 @@ Rules enforced by `validate`:
 
 Model aliases: `wan`, `wan-prime`, `seedance-fast`, `seedance-2.5`, `kling`.
 State: `<workdir>/state.json` (task ids, outputs). Plan: `<workdir>/plan.json`.
+
+## Product-ad fields
+
+```json
+{
+  "kind": "product-ad",
+  "product_bible": "product-bible.json"
+}
+```
+
+- `kind: product-ad` (or `--require-product-bible`) makes `validate` / `plan` / `run` refuse without a valid bible.
+- When a bible is present, `pipeline.py` **auto-appends** `product_qc.constraints_block` to every shot prompt and Seedream keyframe prompt, and merges existing bible `refs` into **Seedream keyframe** refs only (not Wan/Kling i2v — first-frame + constraints carry the lock).
+- Optional per-shot `"hero": true` — agent should pause for human OK after the keyframe (not hard-gated in code yet).

@@ -1,9 +1,15 @@
 # Delivery checklist
+- [ ] Product bible filled in order: **category → subtype → parts BOM → forbid** (+ colors, logos, proportions, 1–3 refs)
+- [ ] Shot list has `"kind": "product-ad"` and `"product_bible"`; `pipeline validate` passes
+- [ ] PRODUCT LOCK constraints present on every keyframe + i2v prompt (pipeline injects from bible)
+- [ ] Same approved product refs reused across product-visible shots; no invented hybrid parts
+- [ ] Hero / packshot keyframes human-OK (or vision QC pass) before i2v
 - [ ] Hook lands in ≤ 2 s; product visible by 3 s
 - [ ] Product shape, label and colors match the real product in every shot
-- [ ] No invented claims; captions match VO
-- [ ] Captions inside safe area (not under platform UI at bottom/right)
+- [ ] No invented claims, prices, awards, or certifications; captions match VO; end-card price only if user-provided
+- [ ] Captions inside safe area (not under platform UI at bottom/right; prefer ~60% height)
+- [ ] Seedance i2v: no `ratio` param (follows first frame); keyframe already at platform ratio
 - [ ] Ratio correct for the platform; duration within platform limits
-- [ ] Audio levels: VO clear over ambience; no clipping
+- [ ] Audio levels: VO clear over ambience / ducked BGM; no clipping
 - [ ] File: H.264 MP4, 1080×1920, 30 fps (assemble default)
 - [ ] Report spend estimate and file paths

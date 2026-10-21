@@ -11,6 +11,11 @@ Patterns:
   image 1". Last frame: "final frame frozen on image 2".
 - Use Seedance 2.0 Fast for drafts (≤ 720p), switch to 2.5 for finals or > 15 s / 1080p.
 
-Pitfalls: image-to-video crops your image if the ratio differs — pass the same ratio as the image.
-Task-type mismatch errors (`InvalidParameter.TaskTypeMismatch`) mean the prompt implies edit/extend
-while inputs imply reference; make the prompt match the inputs.
+Pitfalls:
+- **First-frame / first-last-frame i2v:** do **not** send `ratio`. The API returns HTTP 400
+  `InvalidParameter.TaskTypeConstraint` ("output ratio follows the first-frame image").
+  `video.py` / pipeline omit `ratio` automatically when a first or last frame is present.
+  Generate the keyframe at the target aspect (e.g. 9:16) so the clip matches the platform.
+- Text-to-video and reference-only (no first frame): `ratio` is required / allowed as usual.
+- Task-type mismatch (`InvalidParameter.TaskTypeMismatch`): prompt implies edit/extend while
+  inputs imply reference — make the prompt match the inputs.

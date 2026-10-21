@@ -56,6 +56,15 @@ def resolve_path(spec, value):
     return str(p if p.is_absolute() else Path(spec["_base"]) / p)
 
 
+def get_bible(spec):
+    """Load product bible once per shot list (None if absent / not required)."""
+    if "_bible" in spec:
+        return spec["_bible"]
+    _ok, _errs, bible = product_qc.check_shotlist_bible(spec, require=False)
+    spec["_bible"] = bible
+    return bible
+
+
 def shot_settings(spec, shot):
     d = dict(spec["defaults"])
     d.update({k: v for k, v in shot.items() if v is not None})
@@ -76,6 +85,10 @@ def compose_prompt(spec, s):
         if c and c.get("description"):
             parts.append(c["description"].strip())
     parts.append(s.get("prompt", "").strip())
+    bible = get_bible(spec)
+    if bible:
+        # Always inject PRODUCT LOCK for product-ad (and any shot list with a bible).
+        parts.append(product_qc.constraints_block(bible))
     return " ".join(p for p in parts if p)
 
 
@@ -86,6 +99,28 @@ def ref_images(spec, s):
         if c.get("ref_image"):
             refs.append(resolve_path(spec, c["ref_image"]))
     refs += [resolve_path(spec, r) for r in s.get("ref_images", [])]
+    return refs
+
+
+def keyframe_ref_images(spec, s):
+    """Refs for Seedream keyframes: shot refs + existing bible refs (product lock photos).
+
+    Not used for Wan/Kling i2v — Wan forbids mixing first_frame with reference_image;
+    Kling has no ref wiring. Product lock for i2v is the QC-passed keyframe + prompt constraints.
+    """
+    refs = list(ref_images(spec, s))
+    kf = s.get("keyframe") or {}
+    refs += [resolve_path(spec, r) for r in kf.get("ref_images", [])]
+    bible = get_bible(spec)
+    if bible:
+        seen = set(refs)
+        for r in bible.get("refs") or []:
+            path = resolve_path(spec, r.get("path"))
+            if not path or path in seen:
+                continue
+            if path.startswith(("https://", "http://", "data:")) or Path(path).is_file():
+                refs.append(path)
+                seen.add(path)
     return refs
 
 
@@ -186,10 +221,15 @@ def save_state(spec, state):
 def gen_keyframe(spec, s, cred, out):
     kf = s["keyframe"]
     w, h = {"9:16": (1440, 2560), "16:9": (2560, 1440), "1:1": (2048, 2048)}.get(s["ratio"], (2048, 2048))
-    body = {"model": kf.get("model", "seedream-4-5-251128"), "prompt": kf["prompt"],
+    prompt = kf["prompt"]
+    bible = get_bible(spec)
+    if bible:
+        lock = product_qc.constraints_block(bible)
+        if "PRODUCT LOCK" not in prompt:
+            prompt = (prompt.rstrip() + " " + lock).strip()
+    body = {"model": kf.get("model", "seedream-4-5-251128"), "prompt": prompt,
             "size": kf.get("size", "%dx%d" % (w, h)), "response_format": "url", "watermark": False}
-    refs = [pt.to_media_ref(r) for r in ref_images(spec, s)] + \
-           [pt.to_media_ref(resolve_path(spec, r)) for r in kf.get("ref_images", [])]
+    refs = [pt.to_media_ref(r) for r in keyframe_ref_images(spec, s)]
     if refs:
         body["image"] = refs[0] if len(refs) == 1 else refs
     code, resp, _ = pt.request("POST", "/v1/images/generations", body, cred=cred, timeout=300)

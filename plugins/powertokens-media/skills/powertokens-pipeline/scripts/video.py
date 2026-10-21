@@ -90,8 +90,14 @@ def build(model, prompt, duration, res, ratio, image=None, last=None, audio=True
         items = ([{"type": "text", "text": prompt.strip()}] if prompt.strip() else []) + media
         if not items:
             raise pt.PTError("Give a prompt or an image.", "BAD_REQUEST", 3)
-        return "/v1/videos", dict(model=model, media=items, seconds=str(duration), size=res.lower(),
-                                  ratio=ratio, generate_audio=audio, watermark=False)
+        # Seedance first-frame / first-last-frame: API rejects `ratio` (HTTP 400
+        # InvalidParameter.TaskTypeConstraint — output ratio follows the first frame).
+        body = dict(model=model, media=items, seconds=str(duration), size=res.lower(),
+                    generate_audio=audio, watermark=False)
+        has_frame = any(m.get("type") in ("first_frame", "last_frame") for m in media)
+        if not has_frame:
+            body["ratio"] = ratio
+        return "/v1/videos", body
     body = dict(model_name=model, prompt=prompt.strip(), duration=str(duration), mode=KLING_MODE[res],
                 sound="on" if audio else "off")
 

@@ -73,7 +73,7 @@ From the bible, inject an explicit block into every Seedream keyframe (and i2v) 
 - Keep parts identical to refs; do not invent, omit, or hybridize listed parts; do not redesign critical geometry.
 - Mouth/lid/thread wording belongs only in **per-product** `how` / `forbid` text when that SKU needs it.
 
-Script helper: `python3 scripts/product_qc.py constraints path/to/bible.json`.
+Script helper: `python3 scripts/product_qc.py constraints path/to/bible.json`. **Enforced:** `pipeline.py` appends this block to every shot + keyframe prompt when `product_bible` is set (do not rely on the agent remembering).
 
 ## 3. Pre-flight checklist gate（提交前闸门）
 

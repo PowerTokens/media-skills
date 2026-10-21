@@ -19,7 +19,7 @@ Let Claude Code, Codex and other [Agent Skills](https://agentskills.io)-compatib
   <img src="assets/examples/northloop/s04.jpg" width="90" alt="s04 keyframe">
 </p>
 
-<sub>Product-ad pipeline: Seedream keyframes → Seedance 2.0 Mini i2v (4×4s, 9:16) → MiniMax VO + captions. Claim-sheet driven copy. Auth via <code>POWERTOKENS_API_KEY</code>.</sub>
+<sub>Product-ad pipeline: Seedream keyframes → Seedance 2.0 Mini i2v (4×4s, 9:16) → MiniMax VO + captions. Claim-sheet driven copy. Auth via <code>POWERTOKENS_API_KEY</code>. <strong>AI-generated demo asset</strong> — fictional brand “North Loop”; packshot and frames were made with Seedream / Seedance for documentation, not a real SKU or stock photo.</sub>
 
 Shotlist to reproduce: [`tools/examples/northloop-ad.json`](tools/examples/northloop-ad.json). Short clip: [`assets/examples/northloop/demo.mp4`](assets/examples/northloop/demo.mp4). Walkthrough: [`docs/examples-northloop.md`](docs/examples-northloop.md).
 

@@ -2,6 +2,10 @@
 
 4-shot vertical (9:16) outdoor thermos ad produced with the product-ad / pipeline skills.
 
+## Asset notice
+
+**AI-generated demo asset.** “North Loop” is a fictional demo brand. The product packshot and example frames were generated with Seedream / Seedance for documentation — not a real commercial SKU, not a stock-photo download, and not user photography. Swap in your own licensed or owned product stills for production work.
+
 ## Pipeline
 
 1. **Seedream** keyframes from a product reference photo

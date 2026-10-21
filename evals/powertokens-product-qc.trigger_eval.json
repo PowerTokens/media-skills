@@ -1,0 +1,6 @@
+[
+  {"query": "add a product bible so Seedream stops inventing the wrong lid", "should_trigger": true},
+  {"query": "产品一致性检查 保温杯开盖", "should_trigger": true},
+  {"query": "vision QC keyframes against lock sheet before i2v", "should_trigger": true},
+  {"query": "make a lo-fi hip hop beat", "should_trigger": false}
+]

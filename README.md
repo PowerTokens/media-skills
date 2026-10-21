@@ -41,6 +41,7 @@ You ask in plain language; the agent picks the skill, calls the API, waits for t
 | `powertokens-social-variants` | 9:16 / 1:1 / 16:9 variants, hook A/B tests, cut-downs |
 | `powertokens-bilingual-voiceover` | English + Chinese voiceover versions of the same video |
 | `powertokens-travel-poster` | Travel / photo still → 3:4 「第二世界」collage poster (Seedream) |
+| `powertokens-product-qc` | Product bible + keyframe vision QC so lids/logos stay correct |
 
 Scripts are plain Python 3.8+ standard library. Nothing to `pip install`. Final assembly uses `ffmpeg` if installed.
 

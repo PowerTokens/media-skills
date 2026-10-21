@@ -3,6 +3,7 @@
 -> voiceover (MiniMax) -> assembled MP4 with captions. Estimate first, resume always.
 
   python3 pipeline.py validate shots.json            # schema + model limit checks, no network
+  python3 pipeline.py validate shots.json --require-product-bible
   python3 pipeline.py plan shots.json                # cost estimate + writes <workdir>/plan.json
   python3 pipeline.py run shots.json --approve-estimate 4.20   # spends credits; must match plan total
   python3 pipeline.py status shots.json              # what is done / pending / failed
@@ -25,6 +26,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import pt_common as pt  # noqa: E402
 import video  # noqa: E402
+import product_qc  # noqa: E402
 
 RATIO_WH = {"9:16": (1080, 1920), "16:9": (1920, 1080), "1:1": (1080, 1080),
             "4:3": (1440, 1080), "3:4": (1080, 1440), "21:9": (2520, 1080)}
@@ -87,8 +89,10 @@ def ref_images(spec, s):
     return refs
 
 
-def validate(spec):
+def validate(spec, require_product_bible=False):
     errors, ids = [], set()
+    ok_b, b_errs, _ = product_qc.check_shotlist_bible(spec, require=require_product_bible)
+    errors.extend(b_errs)
     if not spec["shots"]:
         errors.append("shots[] is empty")
     for cid, c in spec["characters"].items():
@@ -446,11 +450,17 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     for name in ("validate", "plan", "status"):
-        sub.add_parser(name).add_argument("shotlist")
+        sp = sub.add_parser(name)
+        sp.add_argument("shotlist")
+        if name in ("validate", "plan"):
+            sp.add_argument("--require-product-bible", action="store_true",
+                            help="refuse if product_bible missing (also auto when kind=product-ad)")
     r = sub.add_parser("run")
     r.add_argument("shotlist")
     r.add_argument("--approve-estimate", type=float, help="the video_est_usd from `plan`, after the user agreed")
     r.add_argument("--parallel", type=int, default=2, help="concurrent shots (1-4)")
+    r.add_argument("--require-product-bible", action="store_true",
+                   help="refuse if product_bible missing (also auto when kind=product-ad)")
     a = sub.add_parser("assemble")
     a.add_argument("shotlist")
     a.add_argument("-o", "--output")
@@ -465,7 +475,8 @@ def main():
     if args.cmd == "reformat":
         return cmd_reformat(args.video, args.ratio, args.mode, args.output)
     spec = load(args.shotlist)
-    errors = validate(spec)
+    require_pb = bool(getattr(args, "require_product_bible", False))
+    errors = validate(spec, require_product_bible=require_pb)
     if args.cmd == "validate" or errors:
         pt.emit({"ok": not errors, "errors": errors, "shots": len(spec["shots"])})
         return 0 if not errors else 3

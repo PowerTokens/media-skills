@@ -1,15 +1,60 @@
 {
   "project": "thermos-ad",
   "style": "Bright premium commercial look, soft daylight, shallow depth of field.",
-  "defaults": {"model": "wan3.0-video", "resolution": "720p", "ratio": "9:16", "duration": 4, "audio": false},
+  "defaults": {
+    "model": "wan3.0-video",
+    "resolution": "720p",
+    "ratio": "9:16",
+    "duration": 4,
+    "audio": false
+  },
   "shots": [
-    {"id": "s01", "keyframe": {"prompt": "Matte black steel thermos on a wet slate rock at sunrise, mist, vertical ad photo, product centered, label unchanged", "ref_images": ["product.png"]},
-     "prompt": "Slow push-in on the thermos, mist drifts, first sunlight hits the lid.", "caption": "6 a.m. Still hot."},
-    {"id": "s02", "keyframe": {"prompt": "Hand pouring steaming coffee from the same thermos into its cup lid, cold mountain trail background, vertical", "ref_images": ["product.png"]},
-     "prompt": "Coffee pours from the thermos into the cup, steam rises, static camera.", "caption": "12 hours later."},
-    {"id": "s03", "image": "product.png", "model": "kling", "resolution": "1080p", "duration": 3,
-     "prompt": "The thermos rotates slowly on a turntable, studio light sweep, label stays readable.", "caption": "Shop now"}
+    {
+      "id": "s01",
+      "keyframe": {
+        "prompt": "Matte black steel thermos on a wet slate rock at sunrise, mist, vertical ad photo, product centered, label unchanged",
+        "ref_images": [
+          "product.png"
+        ]
+      },
+      "prompt": "Slow push-in on the thermos, mist drifts, first sunlight hits the lid.",
+      "caption": "6 a.m. Still hot."
+    },
+    {
+      "id": "s02",
+      "keyframe": {
+        "prompt": "Hand pouring steaming coffee from the same thermos into its cup lid, cold mountain trail background, vertical",
+        "ref_images": [
+          "product.png"
+        ]
+      },
+      "prompt": "Coffee pours from the thermos into the cup, steam rises, static camera.",
+      "caption": "12 hours later."
+    },
+    {
+      "id": "s03",
+      "image": "product.png",
+      "model": "kling",
+      "resolution": "1080p",
+      "duration": 3,
+      "prompt": "The thermos rotates slowly on a turntable, studio light sweep, label stays readable.",
+      "caption": "Shop now"
+    }
   ],
-  "voiceover": {"voice": "English_Trustworthy_Man", "lines": [
-    {"text": "Six a.m. on the trail."}, {"text": "Twelve hours later, it's still hot."}, {"text": "The everyday thermos. Link below."}]}
+  "voiceover": {
+    "voice": "English_Trustworthy_Man",
+    "lines": [
+      {
+        "text": "Six a.m. on the trail."
+      },
+      {
+        "text": "Twelve hours later, it's still hot."
+      },
+      {
+        "text": "The everyday thermos. Link below."
+      }
+    ]
+  },
+  "kind": "product-ad",
+  "product_bible": "product-bible.thermos.json"
 }

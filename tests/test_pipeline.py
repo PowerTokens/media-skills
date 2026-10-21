@@ -24,9 +24,12 @@ BANNED = ["deepseek-v4-1-flash-260910", "deepseek-v4-pro-0813", "deepseek-v4-fla
 def project(tmp, example="product-ad.json"):
     d = Path(tmp)
     (d / "refs").mkdir(exist_ok=True)
-    for f in ("product.png", "refs/ning.png", "refs/ava.png", "refs/mia.png"):
+    for f in ("product.png", "product.jpg", "refs/ning.png", "refs/ava.png", "refs/mia.png"):
         (d / f).write_bytes(b"\x89PNG fake")
     shutil.copy(ROOT / "tools" / "examples" / example, d / example)
+    bible = ROOT / "tools" / "examples" / "product-bible.thermos.json"
+    if bible.is_file() and example == "product-ad.json":
+        shutil.copy(bible, d / "product-bible.thermos.json")
     return str(d / example)
 
 

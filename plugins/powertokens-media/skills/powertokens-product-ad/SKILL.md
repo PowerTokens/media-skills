@@ -23,6 +23,18 @@ Scripts: `scripts/pipeline.py` (+ video/image/speech). References:
 7. **Review clips**, offer single-shot re-takes (costs again).
 8. **Assemble** — `pipeline.py assemble` (VO + ducked audio + burned captions). Then offer social variants (powertokens-social-variants).
 
+
+## Product consistency (required)
+
+Real SKUs often have fixed lid/thread mechanics that Seedream invents wrong (e.g. plastic pour on screw threads). Before spending:
+
+1. Write a **product bible** JSON (`examples` pattern / `powertokens-product-qc`). List lid modes, forbid hybrids, colors, logos, proportions, 1–3 approved refs.
+2. Set shot list `"kind": "product-ad"` and `"product_bible": "<file>.json"`.
+3. Append `product_qc.py constraints` text into every keyframe prompt.
+4. After each keyframe: vision QC via `product_qc.py vision-prompt` (chat model `MiniMax-M3` or glm-5.x) → one retry or human stop; hero frames get human OK before i2v.
+
+Details: `powertokens-product-qc` and repo `docs/product-consistency-qc.md`.
+
 ## Before spending
 
 - Credentials: `python3 scripts/pt_login.py status`. If not ok: `python3 scripts/pt_login.py login` (browser sign-in; if it says `LOGIN_UNAVAILABLE`, the user sets `POWERTOKENS_API_KEY` from https://powertokens.ai/api-keys?utm_source=media-skills&utm_medium=skill&utm_campaign=media-skills). Never ask for the key in chat.

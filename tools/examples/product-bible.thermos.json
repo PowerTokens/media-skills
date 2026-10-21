@@ -1,0 +1,24 @@
+{
+  "product_name": "North Loop insulated bottle (thermos-like)",
+  "qc_model": "MiniMax-M3",
+  "immutable": {
+    "lid_modes": [
+      {"id": "screw_lid", "how": "Full metal/plastic screw-off lid on the threaded bottle mouth; remove entire lid to drink or pour."},
+      {"id": "flip_hinge_pour", "how": "Separate plastic flip/hinge pour lid that sits on its own seat — not a spout molded onto the screw threads."}
+    ],
+    "forbid": [
+      "do not invent a plastic pour spout or flip lid opening directly on the metal screw threads",
+      "do not mix screw mouth and flip spout into a hybrid that does not exist on the real product",
+      "do not redesign the mouth diameter or add a straw/button not in the references"
+    ],
+    "colors": "Matte black body; lid finish as in refs; no chrome redesign.",
+    "logos": "none",
+    "proportions": "Tall slim bottle; cup/lid height similar to refs; keep silhouette."
+  },
+  "refs": [
+    {"path": "product.jpg", "shows": "hero closed"},
+    {"path": "product-open-screw.jpg", "shows": "optional: screw lid removed"},
+    {"path": "product-flip.jpg", "shows": "optional: flip/hinge pour mode"}
+  ],
+  "notes": "If a shot needs 'steam from open lid', specify which lid_mode id is open; never invent a third mechanism."
+}

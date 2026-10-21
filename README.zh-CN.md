@@ -118,31 +118,21 @@ cp -r media-skills/plugins/powertokens-media/skills/* ~/.claude/skills/
 
 ### Codex
 
-> **只是安装，不是去跑某个 skill。** 下面这一行是给 Codex 的 skill-installer 用的**安装**命令。把它贴进去，让 Codex **安装**这个 skill。不要把它当成「用某个 skill 去运行 / 分析 / 生成」。
-
 ```text
 $skill-installer install https://github.com/PowerTokens/media-skills/tree/main/plugins/powertokens-media/skills/powertokens-video
 ```
 
-安装完成后，先确认 `~/.codex/skills/powertokens-video/SKILL.md` 存在，且其中的 `name:` 为 `powertokens-video`（描述是通过 API 生成 AI 视频）。确认之后，再让 Codex 生成视频。
+这一行会装上该 skill；在**新**对话里，用自然语言说要生成视频即可（不必再贴安装命令）。
 
-如果已经装了其它与 PowerTokens 相关的视频 skill（例如旧的 `powertokens-tutorial-video`，用于教程或屏幕录制的剪辑规划），请在提示里写明（「只安装；不要使用其它 PowerTokens 视频 skill」），或者删除、停用 `~/.codex/skills/` 下冲突的目录。
-
-分两次说：先安装并核对；生成视频另开一条消息。
-
-可以整段贴给 Codex 的更稳妥说法：
-
-```text
-只执行安装，先不要调用任何 skill：$skill-installer install https://github.com/PowerTokens/media-skills/tree/main/plugins/powertokens-media/skills/powertokens-video 然后列出 ~/.codex/skills/，并确认已有 powertokens-video。
-```
-
-（其它技能同理），或：
+想一次装上整套，优先用这条：
 
 ```bash
 codex plugin marketplace add PowerTokens/media-skills
 ```
 
 手动：拷到 `~/.codex/skills/`（或 `~/.agents/skills/`）后重启。
+
+> 如果 Codex 开始分析屏幕录制，或用了本机上其它 PowerTokens 视频 skill，请说明要用 `powertokens-video`（通过 API 生成），或删掉 `~/.codex/skills/` 下冲突的目录。
 
 ### 其它 Agent Skills 宿主
 

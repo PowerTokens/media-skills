@@ -1,0 +1,81 @@
+{
+  "project": "northloop-ad",
+  "style": "Premium outdoor commercial, anamorphic look, shallow depth of field, rich golden-hour contrast, crisp detail.",
+  "defaults": {
+    "model": "seedance-mini",
+    "resolution": "720p",
+    "ratio": "9:16",
+    "duration": 4,
+    "audio": false
+  },
+  "shots": [
+    {
+      "id": "s01",
+      "model": "seedance-mini",
+      "keyframe": {
+        "model": "seedream-5-0-260128",
+        "ref_images": ["product.jpg"],
+        "prompt": "Vertical 9:16 macro product photograph: the matte black insulated bottle from the reference, keep its exact shape, lid and finish, standing on a wet dark granite rock at sunrise, dew droplets on the metal, warm golden backlight, thin steam curling from the open lid, misty mountains blurred behind, cinematic commercial photography, no text, no logo"
+      },
+      "prompt": "Slow dolly push-in toward the bottle, a sunbeam sweeps across the metal and the dew glints, steam curls up from the lid, mist drifts behind, subtle lens flare. The bottle stays exactly the same.",
+      "caption": "6 a.m. Still hot."
+    },
+    {
+      "id": "s02",
+      "model": "seedance-mini",
+      "keyframe": {
+        "model": "seedream-5-0-260128",
+        "ref_images": ["product.jpg"],
+        "prompt": "Vertical 9:16 close-up: a hand in a knit glove pours steaming black coffee from the same matte black bottle into its cup lid on a frosty mountain ridge at dawn, backlit steam glowing orange, frost on the rock, shallow depth of field, cinematic commercial photography, no text"
+      },
+      "prompt": "Slow-motion pour, coffee streams into the cup, thick backlit steam billows up, camera slowly tilts up following the steam.",
+      "caption": "Pour it. Still hot."
+    },
+    {
+      "id": "s03",
+      "model": "seedance-mini",
+      "keyframe": {
+        "model": "seedream-5-0-260128",
+        "ref_images": ["product.jpg"],
+        "prompt": "Vertical 9:16 action shot: a hiker in a rust-orange jacket walking along a narrow ridge trail at sunrise, the matte black bottle clipped in the side pocket of a grey backpack, seen from behind and slightly low, clouds below, golden rim light, cinematic commercial photography, no text"
+      },
+      "prompt": "Handheld tracking shot following the hiker along the ridge, the bottle swings slightly in the backpack pocket, sun flares between steps, clouds roll below.",
+      "caption": "12 hours. Still hot."
+    },
+    {
+      "id": "s04",
+      "model": "seedance-mini",
+      "keyframe": {
+        "model": "seedream-5-0-260128",
+        "ref_images": ["product.jpg"],
+        "prompt": "Vertical 9:16 hero product shot: the same matte black insulated bottle standing on a flat summit rock above a sea of clouds at golden hour, strong warm rim light outlining the bottle, deep blue sky gradient, product centered in the upper middle of the frame, empty space at the bottom, premium commercial photography, no text, no logo"
+      },
+      "prompt": "Smooth slow orbit around the bottle, warm rim light slides along its edge, clouds drift slowly below, a gentle lens flare passes. The bottle shape and finish stay identical.",
+      "caption": "North Loop. Still hot."
+    }
+  ],
+  "voiceover": {
+    "model": "speech-2.8-hd",
+    "voice": "English_Trustworthy_Man",
+    "speed": 1.0,
+    "lines": [
+      {"id": "vo01", "text": "Six a.m. Coffee still hot."},
+      {"id": "vo02", "text": "Pour it. Still hot."},
+      {"id": "vo03", "text": "Twelve hours later — still hot."},
+      {"id": "vo04", "text": "North Loop. Built to stay hot."}
+    ]
+  },
+  "claims": [
+    {
+      "claim": "Keeps coffee hot ~12 hours",
+      "source": "demo brief (confirm before paid publish)",
+      "used_in": ["s01", "s02", "s03", "s04", "vo"]
+    },
+    {
+      "claim": "Brand: North Loop",
+      "source": "demo brief",
+      "used_in": ["s04", "vo04"]
+    }
+  ],
+  "kind": "product-ad"
+}

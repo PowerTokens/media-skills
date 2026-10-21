@@ -8,6 +8,22 @@ Let Claude Code, Codex and other [Agent Skills](https://agentskills.io)-compatib
 
 <sub>Real output from these skills (480p drafts): Seedream keyframe → Wan 3.0 2-shot ad with captions; Seedance 2.0 Fast with the same image as reference.</sub>
 
+## Example: North Loop product ad
+
+<p align="center">
+  <img src="assets/examples/northloop/preview.jpg" width="180" alt="North Loop ad collage">
+  &nbsp;
+  <img src="assets/examples/northloop/s01.jpg" width="90" alt="s01 keyframe">
+  <img src="assets/examples/northloop/s02.jpg" width="90" alt="s02 keyframe">
+  <img src="assets/examples/northloop/s03.jpg" width="90" alt="s03 keyframe">
+  <img src="assets/examples/northloop/s04.jpg" width="90" alt="s04 keyframe">
+</p>
+
+<sub>Product-ad pipeline: Seedream keyframes → Seedance 2.0 Mini i2v (4×4s, 9:16) → MiniMax VO + captions. Claim-sheet driven copy. Auth via <code>POWERTOKENS_API_KEY</code>.</sub>
+
+Shotlist to reproduce: [`tools/examples/northloop-ad.json`](tools/examples/northloop-ad.json). Short clip: [`assets/examples/northloop/demo.mp4`](assets/examples/northloop/demo.mp4). Walkthrough: [`docs/examples-northloop.md`](docs/examples-northloop.md).
+
+
 You ask in plain language; the agent picks the skill, calls the API, waits for the job and saves the file to `./outputs/`.
 
 ```text

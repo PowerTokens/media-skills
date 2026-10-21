@@ -127,12 +127,10 @@ codex plugin marketplace add PowerTokens/media-skills
 仅装单个 skill：
 
 ```text
-$skill-installer install https://github.com/PowerTokens/media-skills/tree/main/plugins/powertokens-media/skills/powertokens-video
+$skill-installer install https://github.com/PowerTokens/media-skills/tree/main/plugins/powertokens-media/skills/powertokens-product-ad
 ```
 
 手动：拷到 `~/.codex/skills/`（或 `~/.agents/skills/`）后重启。
-
-> 如果 Codex 开始分析屏幕录制，或用了本机上其它 PowerTokens 视频 skill，请说明要用 `powertokens-video`（通过 API 生成），或删掉 `~/.codex/skills/` 下冲突的目录。
 
 ### 其它 Agent Skills 宿主
 
@@ -166,9 +164,9 @@ export POWERTOKENS_API_KEY="your-key"
 
 线上可用 id：`python3 scripts/pt_models.py --filter seedance`。价格：[powertokens.ai/models](https://powertokens.ai/models?utm_source=github&utm_medium=oss&utm_campaign=media-skills)。花钱前先 `--dry-run`。
 
-## 更想用图形界面？
+## 独立产品
 
-[PowerTokens Video Studio](https://github.com/PowerTokens/video-studio) — 同一批模型，支持并排对比与批量生成。
+[PowerTokens Video Studio](https://github.com/PowerTokens/video-studio)（`PowerTokens/video-studio`）是独立的桌面/图形界面产品。本仓库只有 Agent skills。
 
 ## 开发
 

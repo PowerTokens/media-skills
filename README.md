@@ -127,12 +127,10 @@ In a **new** chat, ask in natural language to generate a video or run a product 
 One skill only:
 
 ```text
-$skill-installer install https://github.com/PowerTokens/media-skills/tree/main/plugins/powertokens-media/skills/powertokens-video
+$skill-installer install https://github.com/PowerTokens/media-skills/tree/main/plugins/powertokens-media/skills/powertokens-product-ad
 ```
 
 Manual: copy into `~/.codex/skills/` (or `~/.agents/skills/`) and restart.
-
-> If Codex starts analyzing a screen recording or uses another local PowerTokens video skill, say you want `powertokens-video` (API generate), or remove the conflicting folders under `~/.codex/skills/`.
 
 ### Other Agent Skills hosts
 
@@ -166,9 +164,9 @@ If both an env key and a saved token exist, **`POWERTOKENS_API_KEY` wins**. Brow
 
 Live ids: `python3 scripts/pt_models.py --filter seedance`. Prices: [powertokens.ai/models](https://powertokens.ai/models?utm_source=github&utm_medium=oss&utm_campaign=media-skills). Use `--dry-run` before spending.
 
-## Prefer a GUI?
+## Separate product
 
-[PowerTokens Video Studio](https://github.com/PowerTokens/video-studio) — same models, side-by-side compare and batch generation.
+[PowerTokens Video Studio](https://github.com/PowerTokens/video-studio) (`PowerTokens/video-studio`) is a separate desktop/GUI product. This repository is agent skills only.
 
 ## Development
 

@@ -42,7 +42,7 @@ Default model `seedream-4-5-251128`; others: `seedream-5-0-260128`, `dola-seedre
 
 Prompt tips: subject, setting, composition, lighting, style, and any exact text in quotes. Keep it under ~600 English words.
 
-These images make good first frames for the `powertokens-video` skill (`video.py generate -i <image>`).
+These images make good first frames for the `powertokens-clip-gen` skill (`video.py generate -i <image>`).
 
 ## Related skills
 

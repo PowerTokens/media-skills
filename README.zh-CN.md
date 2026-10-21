@@ -74,7 +74,7 @@ Agent 会选对应 skill，调用 PowerTokens，轮询任务，并把结果写�
 
 | 技能 | 作用 |
 |---|---|
-| `powertokens-video` | 文生视频、图生视频、参考图；提交 → 轮询 → 下载；可续跑不重复扣费 |
+| `powertokens-clip-gen` | 文生视频、图生视频、参考图；提交 → 轮询 → 下载；可续跑不重复扣费 |
 | `powertokens-image` | 文生图与参考编辑（Seedream） |
 | `powertokens-speech` | 语音合成 / 旁白（MiniMax） |
 

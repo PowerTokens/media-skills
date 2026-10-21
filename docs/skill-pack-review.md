@@ -15,7 +15,7 @@ Prior commits in this thread:
 
 | # | Skill | One-line purpose | Maturity |
 |---|---|---|---|
-| 1 | `powertokens-video` | Single-clip t2v / i2v / resume via API | **Thin wrapper** + light routing hints |
+| 1 | `powertokens-clip-gen` | Single-clip t2v / i2v / resume via API | **Thin wrapper** + light routing hints |
 | 2 | `powertokens-image` | Seedream t2i / ref edit | **Thin wrapper** |
 | 3 | `powertokens-speech` | MiniMax TTS / VO | **Thin wrapper** |
 | 4 | `powertokens-model-routing` | Which model / limits / list prices | **Know-how** (docs) |
@@ -35,9 +35,9 @@ Shared but **not** a skill folder: `tools/shared/captions.py`, `finish.py` (now 
 
 ## 2. Per-skill detail
 
-### 2.1 `powertokens-video` — v0.2.1
+### 2.1 `powertokens-clip-gen` — v0.2.1
 
-- **Path:** `plugins/powertokens-media/skills/powertokens-video/SKILL.md`
+- **Path:** `plugins/powertokens-media/skills/powertokens-clip-gen/SKILL.md`
 - **Changed this audit:** Seedance first-frame i2v docs (omit `--ratio`); link to product-qc; examples updated. Underlying `video.py` omits `ratio` when first/last frame present.
 - **Top risks:** Agents still pass wrong models; product identity not gated at CLI; default 16:9 easy to misuse for TikTok.
 - **Gates:** Model whitelist in `MODELS`; duration/res/ratio checks in `build()`. No spend approval on single `generate` (only `--dry-run` advice).
@@ -189,6 +189,7 @@ Tests: `python3 -m unittest discover tests` (offline). Do not push.
 
 ```
 powertokens-bilingual-voiceover
+powertokens-clip-gen
 powertokens-image
 powertokens-model-routing
 powertokens-pipeline
@@ -200,7 +201,6 @@ powertokens-social-variants
 powertokens-speech
 powertokens-travel-poster
 powertokens-ugc-ad
-powertokens-video
 ```
 
 Review doc path: `docs/skill-pack-review.md`  

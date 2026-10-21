@@ -74,7 +74,7 @@ The agent picks the skill, calls PowerTokens, polls the job, and writes files un
 
 | Skill | What it does |
 |---|---|
-| `powertokens-video` | Text-to-video, image-to-video, refs; submit → poll → download; resume without paying twice |
+| `powertokens-clip-gen` | Text-to-video, image-to-video, refs; submit → poll → download; resume without paying twice |
 | `powertokens-image` | Text-to-image and reference edits (Seedream) |
 | `powertokens-speech` | Text-to-speech / voiceover (MiniMax) |
 

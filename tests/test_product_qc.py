@@ -194,5 +194,24 @@ class ProductQcTests(unittest.TestCase):
             self.assertTrue(any("product_bible" in e for e in errs))
 
 
+    def test_part_detail_unify_constraints(self):
+        b = product_qc.load_bible(BIBLE)
+        text = product_qc.constraints_block(b)
+        self.assertIn("Part-detail refs", text)
+        self.assertIn("unify the part onto the original product", text)
+        self.assertIn("flip_hinge_pour", text)
+
+    def test_refs_allow_up_to_five(self):
+        b = product_qc.load_bible(BIBLE)
+        b = dict(b)
+        refs = list(b["refs"]) + [
+            {"path": "extra1.jpg", "kind": "part_detail", "part": "body"},
+            {"path": "extra2.jpg", "kind": "hero"},
+        ]
+        b["refs"] = refs[:5]
+        errs = product_qc.validate_bible(b)
+        self.assertEqual(errs, [])
+
+
 if __name__ == "__main__":
     unittest.main()

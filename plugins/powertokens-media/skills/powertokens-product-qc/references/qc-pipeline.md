@@ -12,3 +12,5 @@ See also the full doc at repo root: `docs/product-consistency-qc.md`.
 Rubric: `structure_matches_refs`, `no_hybrid_or_invented_parts`, `colors_finish_ok`, `logo_policy_ok`, `proportions_silhouette_ok`. Verdict field: `structure_mode_seen`.
 
 Default vision chat candidate: `MiniMax-M3`. Alts: `glm-5.2`, `glm-5.1`, `glm-5-turbo`. Confirm live ids and multimodal support before spending.
+
+**Part-detail refs:** find the separate part image when needed, then **unify onto the hero product** — body/proportions/scene stay locked; only the named BOM part changes. Never regenerate from a part-only crop alone.

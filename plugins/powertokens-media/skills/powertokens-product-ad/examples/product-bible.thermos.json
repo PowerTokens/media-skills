@@ -9,35 +9,63 @@
         "id": "body",
         "role": "body",
         "how": "Tall double-wall insulated cylinder; matte black exterior; fixed mouth diameter as in refs.",
-        "states": ["closed", "open"]
+        "states": [
+          "closed",
+          "open"
+        ]
       },
       {
         "id": "screw_lid",
         "role": "closure",
         "how": "Full metal/plastic screw-off lid on the threaded bottle mouth; remove entire lid to drink or pour.",
-        "states": ["on", "off"]
+        "states": [
+          "on",
+          "off"
+        ]
       },
       {
         "id": "flip_hinge_pour",
         "role": "closure",
         "how": "Separate plastic flip/hinge pour lid that sits on its own seat — not a spout molded onto the screw threads.",
-        "states": ["closed", "flipped_open"]
+        "states": [
+          "closed",
+          "flipped_open"
+        ]
       }
     ],
     "forbid": [
       "do not invent a plastic pour spout or flip lid opening directly on the metal screw threads",
       "do not mix screw mouth and flip spout into a hybrid that does not exist on the real product",
-      "do not redesign the mouth diameter or add a straw/button not in the references"
+      "do not redesign the mouth diameter or add a straw/button not in the references",
+      "do not shorten or restyle the body from a part-detail (lid-only) crop"
     ],
     "colors": "Matte black body; lid finish as in refs; no chrome redesign.",
     "logos": "none",
     "proportions": "Tall slim bottle; cup/lid height similar to refs; keep silhouette."
   },
   "refs": [
-    {"path": "product.jpg", "shows": "hero closed"},
-    {"path": "product-open-screw.jpg", "shows": "optional: screw lid removed"},
-    {"path": "product-flip.jpg", "shows": "optional: flip/hinge pour mode"}
+    {
+      "path": "product.jpg",
+      "shows": "hero closed",
+      "kind": "hero"
+    },
+    {
+      "path": "product-open-screw.jpg",
+      "shows": "optional: screw lid removed",
+      "kind": "part_detail",
+      "part": "screw_lid"
+    },
+    {
+      "path": "product-flip.jpg",
+      "shows": "optional: flip/hinge pour mode",
+      "kind": "part_detail",
+      "part": "flip_hinge_pour"
+    }
   ],
-  "must_match_refs": ["screw_lid", "flip_hinge_pour", "body"],
-  "notes": "If a shot needs 'steam from open lid', specify which parts[].id is open; never invent a third closure mechanism."
+  "must_match_refs": [
+    "screw_lid",
+    "flip_hinge_pour",
+    "body"
+  ],
+  "notes": "If a shot needs 'steam from open lid', specify which parts[].id is open; never invent a third closure mechanism. Part-detail refs (product-flip.jpg etc.) correct ONLY that part — keep body height/silhouette/scene from the hero ref (or approved composition keyframe); unify the part onto the original product."
 }

@@ -168,12 +168,25 @@ def validate_bible(data):
     if "logos" not in imm:
         errs.append("immutable.logos is required (use null/'none' if no logo)")
     refs = work.get("refs") or []
-    if not isinstance(refs, list) or not (1 <= len(refs) <= 3):
-        errs.append("refs must be a list of 1–3 {path, shows?} objects")
+    if not isinstance(refs, list) or not (1 <= len(refs) <= 5):
+        errs.append(
+            "refs must be a list of 1–5 {path, shows?, kind?, part?} objects"
+        )
     else:
         for i, r in enumerate(refs):
             if not isinstance(r, dict) or not r.get("path"):
                 errs.append("refs[%d].path is required" % i)
+                continue
+            kind = r.get("kind")
+            if kind is not None and kind not in ("hero", "part_detail"):
+                errs.append(
+                    "refs[%d].kind must be 'hero' or 'part_detail' when set" % i
+                )
+            if "part" in r and r.get("part") is not None:
+                if not isinstance(r.get("part"), str) or not str(r.get("part")).strip():
+                    errs.append("refs[%d].part must be a non-empty string when set" % i)
+            if kind == "part_detail" and not (isinstance(r.get("part"), str) and r.get("part").strip()):
+                errs.append("refs[%d] kind=part_detail requires part=<parts[].id>" % i)
     mmr = work.get("must_match_refs")
     if mmr is not None and not isinstance(mmr, list):
         errs.append("must_match_refs must be a list of strings when present")
@@ -209,10 +222,23 @@ def constraints_block(bible):
         logo_line,
         "Forbidden: %s." % forbid,
         "Keep the product identical to the reference photos; do not invent, omit, or hybridize parts listed in structure; do not redesign critical geometry.",
+        "Part-detail refs (kind=part_detail or shows a single BOM part): use them ONLY to correct that named part; keep body height, silhouette, proportions, colors/finish, and scene framing identical to the hero product ref — unify the part onto the original product; do not shorten, stubby-fy, or restyle the whole SKU from a part-only crop.",
     ]
     mmr = bible.get("must_match_refs")
     if mmr:
         lines.append("Must match refs exactly for: %s." % ", ".join(str(x) for x in mmr))
+    part_detail_ids = []
+    for r in bible.get("refs") or []:
+        if not isinstance(r, dict):
+            continue
+        if r.get("kind") == "part_detail" or r.get("part"):
+            pid = r.get("part") or r.get("shows") or r.get("path")
+            if pid:
+                part_detail_ids.append(str(pid))
+    if part_detail_ids:
+        lines.append(
+            "Part-detail ref parts in use: %s." % ", ".join(part_detail_ids)
+        )
     if bible.get("notes"):
         lines.append(str(bible["notes"]).strip())
     return " ".join(lines)

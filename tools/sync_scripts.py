@@ -25,6 +25,7 @@ NEEDS = {
     "powertokens-short-drama": (PIPE, ["short-drama.json"]),
     "powertokens-social-variants": (PIPE, []),
     "powertokens-bilingual-voiceover": (PIPE, ["bilingual-vo.json"]),
+    "powertokens-travel-poster": (AUTH + ["image.py"], []),
 }
 check = "--check" in sys.argv
 stale = []

@@ -1,0 +1,8 @@
+[
+  {"query": "turn this travel photo into a 第二世界 collage poster", "should_trigger": true},
+  {"query": "做一张旅行拼贴海报，上下对半", "should_trigger": true},
+  {"query": "make a second-world photo collage from my hiking shot", "should_trigger": true},
+  {"query": "旅行海报 3:4 Seedream", "should_trigger": true},
+  {"query": "generate a product packshot on white", "should_trigger": false},
+  {"query": "write a travel blog itinerary for Tokyo", "should_trigger": false}
+]

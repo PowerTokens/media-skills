@@ -27,3 +27,7 @@ Source: https://docs.powertokens.ai/en/zmodelAudio/minimax/speech-2.8-turbo
 
 Live check 2026-10-20: `seedream-4-5-251128` returned one 1440×2560 image (JPEG bytes from the result
 URL); `speech-2.8-turbo` returned a 2.7 s MP3 for a 33-character line.
+
+## Related production skill
+
+`powertokens-travel-poster` — photo → 3:4 second-world collage; prefer `seedream-5-0-260128` at `1536x2048` with the upload as `--image`.

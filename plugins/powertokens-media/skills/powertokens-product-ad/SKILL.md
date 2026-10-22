@@ -4,7 +4,7 @@ description: Produce a short vertical product ad (TikTok, Reels, Shorts, paid so
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.3.5"
+  version: "0.3.6"
 ---
 
 # Product ad (URL / image → vertical ad)
@@ -21,8 +21,8 @@ Examples: `examples/claim-sheet.json`, `examples/product-ad.json`.
 2. **Extract claim sheet** — fetch the page (browser if the storefront is JS-heavy). Pull name, brand, price (optional), bullets/specs with numbers, hero image URLs. Write `claims.json` in the shape of `examples/claim-sheet.json`. Mark shaky lines `needs_confirm` or put them in `rejected_or_skipped` — **never invent**. Render with `python3 scripts/claim_sheet.py table claims.json`.
 3. **User confirms claims** — show the table; wait for an explicit yes (or which ids to keep). Then `python3 scripts/claim_sheet.py approve claims.json --ids c1,c2 -o claims.approved.json`. **No keyframes / video spend before this.**
 4. **Script from approved claims only** — hook (≤ 2 s) encodes a verified claim → problem/desire → product moment → proof → CTA. 30–40 words VO for 15 s. Captions = compressed claims (see `copy.md`).
-5. **Storyboard** — 4–6 shots of 2–4 s; one action + one camera move each; caption per shot mapped to claim ids. Show as a table.
-6. **Route** — drafts `wan3.0-video` 480p/720p; hero product turn `kling-v3` 1080p; see powertokens-model-routing.
+5. **Storyboard** — 4–6 shots; one action + one camera move each; caption per shot mapped to claim ids. On-screen cuts can be ~2–4 s; generate draft clips at 4–5 s (Mini's minimum) and trim in assembly. Show as a table.
+6. **Route** — drafts `seedance-mini` (`dreamina-seedance-2-0-mini-260615`) at 480p or 720p, 4–15 s, ~$0.031/s (no 1080p); hero product turn `kling-v3` 1080p; see powertokens-model-routing.
 7. **Keyframes** — Seedream with the real packshot as reference at 9:16 (`keyframe` in the shot list). Download hero images from the PDP when the user did not attach files (credit the URL in the bible refs).
 8. **Shot list** → `validate` → `plan` → approval → `run`.
 9. **Review clips**, offer single-shot re-takes (costs again).

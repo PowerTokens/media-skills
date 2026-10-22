@@ -2,7 +2,7 @@
   "project": "thermos-ad",
   "style": "Bright premium commercial look, soft daylight, shallow depth of field.",
   "defaults": {
-    "model": "wan3.0-video",
+    "model": "seedance-mini",
     "resolution": "720p",
     "ratio": "9:16",
     "duration": 4,

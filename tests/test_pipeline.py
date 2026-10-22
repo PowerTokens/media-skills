@@ -57,8 +57,8 @@ class PipelineTests(unittest.TestCase):
             spec = pipeline.load(project(tmp))
             pipeline.validate(spec)
             p = pipeline.plan(spec)
-            # 2 x Wan 720p 4 s (0.10/s) + Kling 1080p 3 s (0.168/s) = 0.80 + 0.504
-            self.assertAlmostEqual(p["video_est_usd"], 1.30, places=2)
+            # 2 x Seedance Mini 720p 4 s (0.031/s) + Kling 1080p 3 s (0.168/s) = 0.248 + 0.504
+            self.assertAlmostEqual(p["video_est_usd"], 0.75, places=2)
             self.assertTrue(any("voiceover" in u for u in p["not_estimated"]))
 
     def test_run_refuses_without_matching_approval(self):
@@ -216,6 +216,20 @@ class RepoStructureTests(unittest.TestCase):
     def test_synced(self):
         r = subprocess.run([sys.executable, str(ROOT / "tools" / "sync_scripts.py"), "--check"])
         self.assertEqual(r.returncode, 0)
+
+    def test_product_ad_draft_default_is_seedance_mini(self):
+        text = (SKILLS / "powertokens-product-ad" / "scripts" / "video.py").read_text(encoding="utf-8")
+        self.assertIn('DEFAULT_MODEL = "dreamina-seedance-2-0-mini-260615"', text)
+        wan_skills = ("powertokens-video", "powertokens-pipeline", "powertokens-ugc-ad",
+                      "powertokens-short-drama", "powertokens-bilingual-voiceover")
+        for name in wan_skills:
+            other = (SKILLS / name / "scripts" / "video.py").read_text(encoding="utf-8")
+            self.assertIn('DEFAULT_MODEL = "wan3.0-video"', other, name)
+        example = json.loads((ROOT / "tools" / "examples" / "product-ad.json").read_text(encoding="utf-8"))
+        self.assertEqual(example["defaults"]["model"], "seedance-mini")
+        hero = example["shots"][-1]
+        self.assertEqual(hero["model"], "kling")
+        self.assertEqual(hero["resolution"], "1080p")
 
 
 if __name__ == "__main__":

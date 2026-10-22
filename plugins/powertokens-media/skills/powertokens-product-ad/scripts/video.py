@@ -44,7 +44,7 @@ ALIASES = {"wan": "wan3.0-video", "wan3": "wan3.0-video", "wan-prime": "wan3.0-v
            "seedance": "dreamina-seedance-2-0-fast-260128", "seedance-fast": "dreamina-seedance-2-0-fast-260128",
            "seedance-mini": "dreamina-seedance-2-0-mini-260615",
            "seedance-2.5": "dreamina-seedance-2-5-260628", "kling": "kling-v3"}
-DEFAULT_MODEL = "wan3.0-video"
+DEFAULT_MODEL = "dreamina-seedance-2-0-mini-260615"
 KLING_MODE = {"720p": "std", "1080p": "pro", "4k": "4k"}
 
 

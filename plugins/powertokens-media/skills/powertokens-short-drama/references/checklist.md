@@ -2,6 +2,8 @@
 - [ ] Hook in first 3 s, cliffhanger in last 5 s
 - [ ] Every shot uses the character ids; refs exist; descriptions word-for-word identical
 - [ ] Faces/outfits consistent across shots (re-take outliers only); view first frames side by side before assemble
+- [ ] Deliverable MP4 has dialogue captions burned in (`assemble` without `--no-captions`; `captions_burned: true`). SRT-only is incomplete unless the user asked for softsubs only
+- [ ] Each shot has caption text so burn-in is not empty; if assemble warns, fix the shot list and re-assemble
 - [ ] Dialogue captions correct and timed to shots; safe zone respected
 - [ ] Seedance i2v: omit `ratio` with first_frame; keyframes at 9:16
 - [ ] No invented brand claims in dialogue/captions the user did not approve

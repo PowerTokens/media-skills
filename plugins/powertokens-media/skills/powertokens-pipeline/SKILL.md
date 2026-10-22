@@ -4,7 +4,7 @@ description: Turn a JSON shot list into a finished video with PowerTokens — Se
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.3.0"
+  version: "0.3.1"
 ---
 
 # PowerTokens shot-list pipeline
@@ -34,11 +34,23 @@ Schema: `references/shotlist-schema.md`. Examples: `examples/*.json`.
 8. **Review:** list clips in `<workdir>/clips/`. Offer re-takes of single shots (delete that shot's entry
    in `state.json` to regenerate it — this costs again; say so).
 9. **Assemble (free):** `python3 scripts/pipeline.py assemble shots.json` → normalizes to the project
-   ratio, concatenates, mixes voiceover over ducked clip audio, burns captions in TikTok lower-middle safe zone (`captions.srt` also saved; override via `assembly.caption_style`).
-   `--dry-run` prints the ffmpeg commands.
+   ratio, concatenates, mixes voiceover over ducked clip audio, burns captions in TikTok lower-middle safe zone (`captions.srt` is also saved as a sidecar; override style via `assembly.caption_style`).
+   `--dry-run` prints the ffmpeg commands. See **Burned-in captions** before you treat the MP4 as delivered.
 10. **Variants (free):** `python3 scripts/pipeline.py reformat final.mp4 --ratio 1:1 --mode crop|pad`.
 
-Report: final path, duration, what was spent (estimate), anything not generated.
+Report: final path, `"captions_burned": true`, duration, what was spent (estimate), anything not generated. If `captions_burned` is false or the result has a `warning`, fix it and re-assemble before handing over the path.
+
+## Burned-in captions (delivery gate)
+
+For a product ad, UGC ad, or short drama, the deliverable MP4 **must** have captions burned in. `assemble` does that by default. `captions.srt` is a sidecar. Shipping the SRT alone, or telling the user to open it, is not a complete delivery unless they explicitly asked for softsubs only.
+
+Before sharing the final path:
+
+1. Assemble without `--no-captions`.
+2. Read the JSON: `"captions_burned": true`, and no `warning`.
+3. Shots must have caption text (`shots[].caption`, or voiceover line text copied onto each shot) so the burn has content. If captions are missing, fix the shot list and re-assemble. An empty SRT means the MP4 is a clean plate; do not call it done.
+
+`--no-captions` is the rare explicit opt-out (user asked for no burn-in or softsubs only). It skips burn-in, still writes `captions.srt`, and sets `captions_burned` to false with a `warning`. Pass it only in that case, and say burn-in was skipped. Same rule when re-assembling cut-downs or language cuts.
 
 ## Product ads / identity lock
 
@@ -60,7 +72,7 @@ With a first frame / keyframe, Seedance rejects `ratio` (HTTP 400). `video.py` o
 
 ## Caption copy (content ≠ style)
 
-Burn-in style **defaults** to kinetic TikTok **A** (`tiktok` yellow word highlight); override via `assembly.caption_style` or `captions.py --style` (`tiktok`|`pill`|`caps-punch`|`zh`) — recommended default, not locked. **Wording** comes from the shot list: `shots[].caption`, or for `finish.py` from `voiceover.lines[].caption` / `.text` (shot captions only if there is no VO). Authors must follow the powertokens-product-ad copy brief: prefer product URL → claim sheet → user approve; sourced claims only; reject mood-only lines; no spend before yes.
+Burn-in style **defaults** to kinetic TikTok **A** (`tiktok` yellow word highlight); override via `assembly.caption_style` or `captions.py --style` (`tiktok`|`pill`|`caps-punch`|`zh`) — recommended default, not locked. **Wording** for `assemble` comes only from `shots[].caption` (copy voiceover line text onto each shot when that is where the words live). `finish.py` can also read `voiceover.lines[].caption` / `.text` (shot captions only if there is no VO). Authors must follow the powertokens-product-ad copy brief: prefer product URL → claim sheet → user approve; sourced claims only; reject mood-only lines; no spend before yes. Delivery still requires burned-in captions; see **Burned-in captions**.
 
 ## Finish / kinetic captions (optional)
 

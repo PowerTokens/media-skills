@@ -1,4 +1,5 @@
 """Offline pipeline + repo structure tests (no network, no credits). ffmpeg tests skip if absent."""
+import io
 import json
 import os
 import re
@@ -115,6 +116,26 @@ class PipelineTests(unittest.TestCase):
         self.assertIn("00:00:00,000 --> 00:00:02,000\nHi", srt)
         self.assertIn("00:00:03,500 --> 00:00:06,500\nBye", srt)
 
+    def test_assemble_caption_report(self):
+        ok = pipeline.assemble_caption_report("1\n00:00:00,000 --> 00:00:01,000\nHi\n", True)
+        self.assertTrue(ok["captions_burned"])
+        self.assertIsNone(ok["warning"])
+        self.assertIsNone(ok["next_step"])
+        empty = pipeline.assemble_caption_report("", True)
+        self.assertFalse(empty["captions_burned"])
+        self.assertIn("No shot caption", empty["warning"])
+        self.assertIn("re-assemble", empty["warning"])
+        self.assertIn("Do not deliver", empty["next_step"])
+        soft = pipeline.assemble_caption_report("1\n00:00:00,000 --> 00:00:01,000\nHi\n", False)
+        self.assertFalse(soft["captions_burned"])
+        self.assertIn("--no-captions", soft["warning"])
+        self.assertIn("softsubs only", soft["warning"])
+        self.assertNotIn("No shot caption", soft["warning"])
+        both = pipeline.assemble_caption_report("  ", False)
+        self.assertFalse(both["captions_burned"])
+        self.assertIn("No shot caption", both["warning"])
+        self.assertIn("--no-captions", both["warning"])
+
 
 @unittest.skipUnless(shutil.which("ffmpeg") and shutil.which("ffprobe"), "ffmpeg not installed")
 class AssembleTests(unittest.TestCase):
@@ -139,11 +160,32 @@ class AssembleTests(unittest.TestCase):
                            check=True, capture_output=True)
             state["voiceover"]["vo01"] = {"status": "done", "output": str(vo)}
             pipeline.save_state(spec, state)
-            with mock.patch("sys.stdout"):
+            buf = io.StringIO()
+            with mock.patch("sys.stdout", buf):
                 pipeline.cmd_assemble(spec, None, True, False)
+            payload = json.loads(buf.getvalue())
+            self.assertTrue(payload["captions_burned"])
+            self.assertNotIn("warning", payload)
+            self.assertTrue(payload["captions"].endswith("captions.srt"))
             final = wd / "thermos-ad-final.mp4"
             self.assertTrue(final.is_file())
             self.assertAlmostEqual(pipeline.probe_duration(str(final)), 6.0, delta=0.3)
+            soft = io.StringIO()
+            with mock.patch("sys.stdout", soft):
+                pipeline.cmd_assemble(spec, str(wd / "soft.mp4"), False, False)
+            soft_payload = json.loads(soft.getvalue())
+            self.assertFalse(soft_payload["captions_burned"])
+            self.assertIn("--no-captions", soft_payload["warning"])
+            self.assertTrue(Path(soft_payload["captions"]).is_file())
+            for shot in spec["shots"]:
+                shot.pop("caption", None)
+            clean = io.StringIO()
+            with mock.patch("sys.stdout", clean):
+                pipeline.cmd_assemble(spec, str(wd / "clean.mp4"), True, False)
+            clean_payload = json.loads(clean.getvalue())
+            self.assertFalse(clean_payload["captions_burned"])
+            self.assertIn("No shot caption", clean_payload["warning"])
+            self.assertIn("next_step", clean_payload)
             r = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v", "-show_entries",
                                 "stream=width,height", "-of", "csv=p=0", str(final)], capture_output=True, text=True)
             self.assertEqual(r.stdout.strip(), "1080,1920")

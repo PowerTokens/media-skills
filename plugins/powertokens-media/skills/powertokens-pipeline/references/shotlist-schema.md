@@ -76,4 +76,8 @@ Captions, voiceover lines, and `finish.end_card` / hook text are scanned for awa
 
 ## Assemble captions
 
-Default burn-in uses TikTok/Reels lower-middle safe zone. Kinetic default is A (`tiktok`); override with `assembly.caption_style` or finish/`captions.py --style` (`tiktok`|`pill`|`caps-punch`|`zh`) — not locked.
+`assemble` burns `shots[].caption` into the MP4 by default (TikTok/Reels lower-middle safe zone) and also writes `captions.srt`. For a product ad, UGC ad, or short drama the deliverable is that MP4 with captions burned in. The SRT is a sidecar, not a substitute. Kinetic default is A (`tiktok`); override with `assembly.caption_style` or finish/`captions.py --style` (`tiktok`|`pill`|`caps-punch`|`zh`) — not locked.
+
+`--no-captions` skips burn-in and still writes the SRT. It is an explicit opt-out for when the user asked for softsubs only or no on-screen captions. The result sets `captions_burned` to false.
+
+If no shot has caption text, burn-in has nothing to draw. Assemble still writes the MP4, sets `captions_burned` to false, and emits a `warning` plus `next_step`. Copy caption text (or the voiceover line for that shot) onto each shot and re-assemble. Do not hand over that clean plate as finished.

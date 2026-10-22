@@ -4,7 +4,7 @@ description: Produce a short vertical product ad (TikTok, Reels, Shorts, paid so
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.3.6"
+  version: "0.3.7"
 ---
 
 # Product ad (URL / image → vertical ad)
@@ -27,6 +27,22 @@ Examples: `examples/claim-sheet.json`, `examples/product-ad.json`.
 8. **Shot list** → `validate` → `plan` → approval → `run`.
 9. **Review clips**, offer single-shot re-takes (costs again).
 10. **Assemble** — `pipeline.py assemble` (VO + ducked audio + burned captions). Caption burn style **defaults to A** (`tiktok`); override with `assembly.caption_style` / `captions.py --style` (`tiktok`|`pill`|`caps-punch`|`zh`) when the user asks or language needs it — same pattern as finish presets, not a hard lock. Then offer social variants (powertokens-social-variants).
+
+## Caption delivery (hard gate)
+
+The file you hand the user is an MP4 with captions **burned into the picture**. `assemble` burns by default (style A / `tiktok` unless overridden).
+
+Before sharing the final path:
+
+1. Run `assemble` **without** `--no-captions`.
+2. Confirm the JSON has `"captions_burned": true` and no `warning`.
+3. Confirm every shot has caption text (`shots[].caption`, or the voiceover line for that shot copied onto `caption`) so the burn has content.
+
+If caption text is missing, assemble still writes a clean plate, sets `captions_burned` to false, and emits a `warning` / `next_step`. Fill the shot list and re-assemble. That clean plate is not done.
+
+`captions.srt` is a sidecar written next to the MP4. Shipping the SRT alone, or telling the user to open it, is incomplete unless they explicitly asked for softsubs only.
+
+`--no-captions` stays for that explicit opt-out (no burn-in, or softsubs only). It still writes `captions.srt` and sets `captions_burned` to false. Pass it only when the user asked. Say that burn-in was skipped.
 
 ## Product consistency (required)
 

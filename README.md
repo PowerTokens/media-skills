@@ -100,6 +100,45 @@ The agent picks the skill, calls PowerTokens, polls the job, and writes files un
 
 Scripts are plain **Python 3.8+** stdlib — nothing to `pip install`. Assembly uses `ffmpeg` if present. Paid steps always go through `pipeline.py plan` → your yes → `run --approve-estimate <total>`.
 
+## Use each skill
+
+Just describe the job; the agent picks the skill. Paid steps always show an estimate first and wait for your yes. Files land in `./outputs/`.
+
+**Core**
+
+- **`powertokens-video`** — one clip, text-to-video or image-to-video (default Seedance 2.0 Mini).
+  Try: `Animate this photo into a 5 s slow push-in, 9:16.` → MP4
+- **`powertokens-image`** — one image or a reference edit with Seedream.
+  Try: `Make a 3:4 poster of a lighthouse at dusk, flat illustration.` → PNG/JPG
+- **`powertokens-speech`** — text-to-speech with MiniMax (default `speech-2.8-turbo`).
+  Try: `Read this script aloud in a calm female voice.` → MP3/WAV
+
+**Know-how** (no spend on its own)
+
+- **`powertokens-model-routing`** — which model fits quality, speed, price, length, ratio or 1080p.
+  Try: `Which model for a 10 s 1080p vertical clip under $1?` → a recommendation with limits and list price
+- **`powertokens-prompting`** — write or fix prompts: shot structure, camera moves, timing, failure fixes.
+  Try: `The face keeps drifting between shots, fix my prompt.` → rewritten prompt
+
+**Production**
+
+- **`powertokens-pipeline`** — any multi-shot job: JSON shot list → keyframes → clips → VO → assembled MP4. `plan` shows the estimate → you approve → `run`. All 3–4 stills are generated and QC-passed before clips render in parallel (image-to-video). VO is generated sentence by sentence; a line blocked by `CONTENT_POLICY` is rewritten once. Captions are burned in. Resumes without paying twice.
+  Try: `Render this storyboard into a 20 s video.` → final MP4 + clips, stills, VO
+- **`powertokens-product-ad`** — 10–30 s vertical ad from a product URL or photo. Builds a claim sheet for your approval, then hook, storyboard, keyframes that keep the real product, clips, VO and captions via the pipeline rules above. No third-party brands, logos or text in frame unless that brand is the SKU or you approved it.
+  Try: `Make a 15 s vertical English ad from this product link.` → claim sheet, then final MP4
+- **`powertokens-product-qc`** — keep a physical product consistent: product bible (category → subtype → parts), prompt constraints, vision QC of keyframes, including the logo check.
+  Try: `Build a product bible for this sneaker and check these keyframes.` → bible JSON + pass/fail report
+- **`powertokens-ugc-ad`** — phone-native UGC ad: testimonial, unboxing, problem/solution, POV demo or three reasons, with a fictional persona (character bible locked) or hands-only b-roll.
+  Try: `Make a 20 s unboxing UGC ad for this bottle, hands only.` → MP4 with captions + hook variants
+- **`powertokens-short-drama`** — multi-shot story episodes with recurring characters locked by reference sheets.
+  Try: `Write and produce a 60 s micro-drama episode with a cliffhanger.` → beat sheet, reference sheets, episode MP4
+- **`powertokens-social-variants`** — platform versions and A/B tests: 9:16 / 1:1 / 16:9, alternate hooks, 6/15/30 s cut-downs. Crops and cut-downs are free; regenerations are estimated first.
+  Try: `Make square and landscape versions plus two hook variants.` → `<project>-<ratio>-<hook>.mp4` + variant table
+- **`powertokens-bilingual-voiceover`** — English and Chinese (Mandarin/Cantonese) VO of the same visuals; the script is adapted to timing, not translated literally.
+  Try: `Make a Mandarin version of this ad with the same shots.` → EN and ZH cuts with matching captions
+- **`powertokens-travel-poster`** — travel or photography still → 3:4 "second world" collage poster with a short handwritten caption.
+  Try: `Make this beach photo into a collage poster.` → 3:4 poster image
+
 ## Install
 
 The pack is one plugin, `powertokens-media`. Installing that plugin loads every skill. Codex and Claude Code do not have a separate install-all flag. `marketplace add` only registers the source. The plugin install is the whole pack.

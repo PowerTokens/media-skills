@@ -58,3 +58,7 @@ Finish polish uses three presets (`finish.py --preset`):
 
 **Do not** show a mandatory three-option menu. At estimate/approval time, mention the default in one sentence and that they can ask for UGC or cinematic. If they already named a look in the brief, pick that preset silently and still name it in the estimate line.
 
+## Delivery
+
+Hand over the assembled MP4 with captions burned in (`assemble` without `--no-captions`, JSON `captions_burned: true`). `captions.srt` is a sidecar. If shots have no caption text, put the claim or VO line on each `caption`, re-assemble, and only then share the path. `--no-captions` is only for an explicit request for softsubs only or no burn-in.
+

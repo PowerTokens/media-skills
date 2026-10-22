@@ -4,7 +4,7 @@ description: Turn one PowerTokens video or campaign into platform variants and A
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.2.1"
+  version: "0.2.2"
 ---
 
 # Social variants and A/B hooks
@@ -15,7 +15,7 @@ Reference: `references/platforms.md` (ratios, safe zones, variant matrix).
 1. **Reformat (free)** — `python3 scripts/pipeline.py reformat final.mp4 --ratio 1:1 --mode crop` (or `pad` to keep everything in frame). Good when the subject is centered.
 2. **Regenerate natively (paid)** — copy the shot list, change `defaults.ratio`, re-run only shots where the crop loses the subject. Keyframes must be regenerated at the new ratio.
 3. **Hook A/B (paid, small)** — duplicate the shot list with a different first shot + caption; other shots reuse finished clips (copy their `state.json` entries and clips) so only the hook is paid.
-4. **Cut-downs (free)** — drop shots from the shot list and `assemble` again.
+4. **Cut-downs (free)** — drop shots from the shot list and `assemble` again, still with captions burned in. Pass `--no-captions` only when the user explicitly asked for no burn-in or softsubs only. Confirm `captions_burned: true` before sharing the cut.
 
 Always `plan` and get approval for any paid regeneration. Name outputs `<project>-<ratio>-<hook>.mp4` and give the user a table of variants.
 

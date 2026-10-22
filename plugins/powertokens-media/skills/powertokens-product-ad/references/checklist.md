@@ -12,6 +12,8 @@
 - [ ] Hero / packshot keyframes human-OK (or vision QC pass) before i2v
 - [ ] Product visible by 3 s; shape, label and colors match the real product in every shot
 - [ ] No invented claims, prices, awards, or certifications; end-card price only if user-provided / on approved sheet
+- [ ] Deliverable is the MP4 with captions **burned in** (`assemble` without `--no-captions`; JSON `captions_burned: true`, no `warning`). A sidecar `captions.srt`, or telling the user to open it, is incomplete unless they explicitly asked for softsubs only
+- [ ] Every shot has `caption` text (or the VO line copied onto `caption`) so burn-in is not empty. If assemble warns that caption text is missing, fix the shot list and re-assemble before delivery
 - [ ] Captions inside safe area (not under platform UI at bottom/right; prefer ~60% height); style defaults to `tiktok` (A), changeable (`pill` / `caps-punch` / `zh`) if user asks or copy is CJK
 - [ ] Seedance i2v: no `ratio` param (follows first frame); keyframe already at platform ratio
 - [ ] Ratio correct for the platform; duration within platform limits

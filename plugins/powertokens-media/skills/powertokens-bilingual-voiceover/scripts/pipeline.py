@@ -7,7 +7,8 @@
   python3 pipeline.py plan shots.json                # cost estimate + writes <workdir>/plan.json
   python3 pipeline.py run shots.json --approve-estimate 4.20   # spends credits; must match plan total
   python3 pipeline.py status shots.json              # what is done / pending / failed
-  python3 pipeline.py assemble shots.json            # ffmpeg: normalize, concat, voiceover, captions
+  python3 pipeline.py assemble shots.json            # ffmpeg: normalize, concat, voiceover, burn captions (default)
+  python3 pipeline.py assemble shots.json --no-captions  # explicit opt-out: write captions.srt, do not burn in
   python3 pipeline.py approve-hero shots.json s01    # clear hero gate after human OK on keyframe
   python3 pipeline.py reformat final.mp4 --ratio 1:1 # social variant via crop/pad (no credits)
 
@@ -606,6 +607,38 @@ def build_srt(spec, durations):
     return "\n".join(entries)
 
 
+def assemble_caption_report(srt, burn):
+    """Whether the MP4 actually has burned-in captions, plus a delivery warning.
+
+    Burn-in is the default. ``--no-captions`` (burn=False) is an explicit opt-out:
+    the SRT is still written, but it is not a finished product-ad / UGC / short-drama
+    delivery. An empty SRT means no shot had caption text, so burn-in draws nothing.
+    """
+    has_text = bool(srt and str(srt).strip())
+    burned = has_text and bool(burn)
+    warnings = []
+    if not has_text:
+        warnings.append(
+            "No shot caption text, so the MP4 has no burned-in captions. "
+            "Add shots[].caption (or copy each voiceover line onto its shot) and re-assemble."
+        )
+    if not burn:
+        warnings.append(
+            "--no-captions skipped burn-in; captions.srt is softsubs only. "
+            "Use that flag only when the user explicitly asked for no burn-in or softsubs only."
+        )
+    warning = " ".join(warnings) if warnings else None
+    next_step = None
+    if warning:
+        next_step = (
+            "Do not deliver this MP4 as a finished product ad, UGC ad, or short drama. "
+            + ("Add caption text to the shot list and " if not has_text else "")
+            + "re-run assemble without --no-captions so captions are burned in, "
+            "unless the user explicitly asked for softsubs only."
+        )
+    return {"captions_burned": burned, "warning": warning, "next_step": next_step}
+
+
 def ffmpeg_cmds(spec, clips, durations, vo_files, out, burn=True, keep_clip_audio=True):
     ratio = spec["defaults"].get("ratio", "9:16")
     w, h = RATIO_WH.get(ratio, (1080, 1920))
@@ -684,8 +717,20 @@ def cmd_assemble(spec, out, burn, dry):
     wd = Path(spec["_workdir"])
     out = out or str(wd / ("%s-final.mp4" % spec["project"]))
     cmds, norm, srt = ffmpeg_cmds(spec, clips, durations, vo_files, out, burn)
+    report = assemble_caption_report(srt, burn)
+
+    def _emit(payload, include_caption_path):
+        payload["captions_burned"] = report["captions_burned"]
+        if include_caption_path:
+            payload["captions"] = str(wd / "captions.srt") if srt else None
+        if report["warning"]:
+            payload["warning"] = report["warning"]
+            payload["next_step"] = report["next_step"]
+            print("warning: " + report["warning"], file=sys.stderr)
+        pt.emit(payload)
+
     if dry:
-        pt.emit({"dry_run": True, "commands": [" ".join(c) for c in cmds]})
+        _emit({"dry_run": True, "commands": [" ".join(c) for c in cmds]}, False)
         return 0
     (wd / "norm").mkdir(parents=True, exist_ok=True)
     (wd / "concat.txt").write_text("".join("file '%s'\n" % n.replace("'", r"'\''") for n in norm), encoding="utf-8")
@@ -697,8 +742,7 @@ def cmd_assemble(spec, out, burn, dry):
         r = subprocess.run(c, capture_output=True, text=True)
         if r.returncode != 0:
             raise pt.PTError("ffmpeg failed: %s\n%s" % (" ".join(c[:6]), r.stderr[-800:]), "FFMPEG")
-    pt.emit({"ok": True, "output": str(Path(out).resolve()), "duration_s": round(probe_duration(out), 2),
-             "captions": str(wd / "captions.srt") if srt else None})
+    _emit({"ok": True, "output": str(Path(out).resolve()), "duration_s": round(probe_duration(out), 2)}, True)
     return 0
 
 
@@ -750,7 +794,10 @@ def main():
     a = sub.add_parser("assemble")
     a.add_argument("shotlist")
     a.add_argument("-o", "--output")
-    a.add_argument("--no-captions", action="store_true", help="skip burning captions (captions.srt still written)")
+    a.add_argument("--no-captions", action="store_true",
+                   help="explicit opt-out: do not burn captions into the MP4 (captions.srt still written). "
+                        "Not a complete product-ad, UGC, or short-drama delivery unless the user asked "
+                        "for softsubs only or no burn-in")
     a.add_argument("--dry-run", action="store_true")
     f = sub.add_parser("reformat")
     f.add_argument("video")

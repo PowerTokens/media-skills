@@ -4,7 +4,7 @@ description: Write and produce AI short dramas and multi-shot story videos (vert
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.2.3"
+  version: "0.2.4"
 ---
 
 # Short drama (multi-shot, consistent characters)
@@ -19,7 +19,7 @@ Example: `examples/short-drama.json`.
 3. **Reference sheets** — Seedream: plain background, front view + close-up per character (user approves). Save under `refs/`.
 4. **Beat sheet → shots** — 60–90 s episode ≈ 8–15 generated clips; timeline beats of 1–3 s inside 4–8 s Seedance clips (see powertokens-prompting timing-and-shots).
 5. **Route** — default drafts `seedance-mini` 720p (4–15 s, max 720p, ~$0.031/s); step up to `seedance-fast` for a closer Seedance look; dialogue-heavy finals `seedance-2.5`. Use `wan3.0-video` only when you need 2–30 s, 1080p, or Wan reference mode.
-6. Shot list → `validate` → `plan` → approval → `run` → review continuity → re-take single shots → `assemble` with dialogue captions.
+6. Shot list → `validate` → `plan` → approval → `run` → review continuity → re-take single shots → `assemble` with dialogue captions burned in. Pass `--no-captions` only when the user explicitly asked for no burn-in or softsubs only. Before sharing the MP4, confirm JSON `captions_burned: true` and that each shot has `caption` text. If assemble warns that caption text is missing, fix the shot list and re-assemble. `captions.srt` is a sidecar, not the delivery.
 7. For the next episode, reuse the same `characters` block and refs unchanged.
 
 ## Before spending

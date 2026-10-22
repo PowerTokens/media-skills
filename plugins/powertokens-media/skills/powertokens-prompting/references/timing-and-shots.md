@@ -1,16 +1,17 @@
 # Timing: clip length vs cut length
 
 Two different things:
-- **Clip (generation) length** — what you request. Model limits: Wan 3.0 2–30 s, Seedance Fast
-  4–15 s, Seedance 2.5 4–30 s, Kling v3 3–15 s (see model-routing).
+- **Clip (generation) length** — what you request. Model limits: Seedance Mini (pack default) 4–15 s,
+  max 720p; Wan 3.0 2–30 s; Seedance Fast 4–15 s; Seedance 2.5 4–30 s; Kling v3 3–15 s
+  (see model-routing).
 - **Cut (shot) length** — how long each shot stays on screen in the edit.
 
 Short-form and short-drama pacing (craft guidance, not an API limit): most cuts 1–3 s, hook in the
 first 1–2 s, hold a reaction or product beat 2–3 s, rarely > 4 s on vertical feeds.
 
 Two ways to get 1–3 s cuts:
-1. **Generate short clips, cut in the edit.** Request the model minimum (Wan 2 s, Kling 3 s,
-   Seedance 4 s) and trim with ffmpeg. Simple and consistent; you pay for unused seconds.
+1. **Generate short clips, cut in the edit.** Request the model minimum (Seedance Mini 4 s, Wan 2 s,
+   Kling 3 s) and trim with ffmpeg. Simple and consistent; you pay for unused seconds.
 2. **Timeline prompt inside one clip.** Seedance follows time-coded beats. PT's Seedance 2.5 docs
    example uses this form: "First frame is image 1, …; 2-4s: quick cut, …; 4-6s: product close-up, …;
    6-8s: …". Keep 3–5 beats per clip, each 1–3 s, same subject description throughout.

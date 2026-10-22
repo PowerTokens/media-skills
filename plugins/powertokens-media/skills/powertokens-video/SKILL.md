@@ -4,7 +4,7 @@ description: Generate AI videos (text-to-video and image-to-video) with Seedance
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.2.1"
+  version: "0.2.2"
 ---
 
 # PowerTokens video
@@ -28,16 +28,17 @@ Scripts print JSON. On failure read `error_type`:
 
 ## Generate
 
-1. Pick settings. Defaults: `wan3.0-video`, 5 s, 720p, 16:9. Vertical for TikTok/Reels/Shorts → `--ratio 9:16`.
-   - Fast cheap draft → `wan3.0-video` at 480p.
-   - Most cinematic motion / storytelling → `dreamina-seedance-2-5-260628` (aliases: `seedance-2.5`; fast draft: `seedance-fast`).
+1. Pick settings. Defaults: `seedance-mini` (`dreamina-seedance-2-0-mini-260615`), 5 s, 720p, 16:9. Mini is 4–15 s, max 720p, ~$0.031/s at both 480p and 720p (480p is not cheaper). Vertical for TikTok/Reels/Shorts → `--ratio 9:16`.
+   - Cheapest draft → stay on `seedance-mini`. Wan 480p is $0.05/s.
+   - Longer than 15 s, or 1080p on Wan → `wan3.0-video` (2–30 s, 480p–1080p).
+   - Most cinematic motion / storytelling → `dreamina-seedance-2-5-260628` (aliases: `seedance-2.5`; closer Seedance preview: `seedance-fast`).
    - 1080p/4K product shots → `kling-v3` (no seed).
    - `python3 scripts/video.py models` prints durations, resolutions and list prices.
 2. Preview cost without spending: add `--dry-run`. Tell the user the `est_cost_usd` before long or high-res jobs (> $1).
 3. Run (takes 1–10 minutes; the script polls and downloads):
 
 ```bash
-python3 scripts/video.py generate -p "PROMPT" -m wan3.0-video -d 5 -r 720p --ratio 16:9 -o outputs/clip.mp4
+python3 scripts/video.py generate -p "PROMPT" -m seedance-mini -d 5 -r 720p --ratio 16:9 -o outputs/clip.mp4
 # image-to-video: first frame from a local file or https URL
 # Seedance: omit --ratio with -i (script strips it; API 400 if ratio is sent with first_frame).
 # Keyframe / first frame must already be the target aspect (e.g. 9:16).

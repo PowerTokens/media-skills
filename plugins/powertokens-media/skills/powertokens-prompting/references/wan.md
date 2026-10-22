@@ -1,6 +1,6 @@
 # Wan 3.0 / Wan 3.0 Prime
 
-Strengths: cheap per second, up to 30 s, native audio, first frame, first+last frame, reference mode.
+Strengths: up to 30 s and 1080p, native audio, first frame, first+last frame, reference mode. Seedance Mini is cheaper per second (~$0.031/s) when 4–15 s and ≤720p is enough.
 
 Patterns:
 - Text-to-video: shot formula from SKILL.md, 40–120 words. Name the camera move explicitly.

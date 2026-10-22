@@ -4,7 +4,7 @@
 {
   "project": "mug-ad",                    // folder name under ./outputs/ (or set "workdir")
   "style": "Bright commercial look, soft window light.",   // prepended to every shot prompt
-  "defaults": {"model": "wan3.0-video", "resolution": "720p", "ratio": "9:16", "duration": 5, "audio": false},
+  "defaults": {"model": "seedance-mini", "resolution": "720p", "ratio": "9:16", "duration": 5, "audio": false},
   "characters": {
     "mia": {"description": "Mia, 28, short black bob, yellow raincoat.", "ref_image": "refs/mia.png"}
   },
@@ -34,7 +34,8 @@ Rules enforced by `validate`:
 - Kling: no reference images in this pack;
 - referenced local files must exist.
 
-Model aliases: `wan`, `wan-prime`, `seedance-fast`, `seedance-2.5`, `kling`.
+Model aliases: `seedance-mini` (pack default), `wan`, `wan-prime`, `seedance-fast`, `seedance-2.5`, `kling`.
+`seedance-mini` is 4–15 s and max 720p (~$0.031/s at 480p and 720p). 1080p/4K heroes stay on `kling`.
 State: `<workdir>/state.json` (task ids, outputs). Plan: `<workdir>/plan.json`.
 
 ## Product-ad fields

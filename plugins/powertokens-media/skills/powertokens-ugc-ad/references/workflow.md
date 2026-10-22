@@ -5,7 +5,7 @@
 | Testimonial | hook face-cam → use → result → CTA | lines in quotes, handheld selfie framing |
 | Unboxing | hands POV open box → reveal → first use → reaction | mostly no faces; VO route works well |
 | Problem/solution | frustration → product → relief → CTA | exaggerate the problem visually, not with claims |
-| POV demo | first-person hands using product, 3–4 steps | Wan i2v from keyframes |
+| POV demo | first-person hands using product, 3–4 steps | Seedance Mini i2v from keyframes (Wan if you need 1080p or outside 4–15 s) |
 | 3 reasons | hook → reason 1/2/3 → CTA | captions numbered |
 
 Prompt style words: "handheld iPhone selfie footage", "front camera", "natural bathroom/kitchen light",

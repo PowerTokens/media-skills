@@ -36,6 +36,7 @@ class VideoTests(unittest.TestCase):
     def test_seedance_mini_alias_and_build(self):
         mid = video.resolve("seedance-mini")
         self.assertEqual(mid, "dreamina-seedance-2-0-mini-260615")
+        self.assertEqual(video.DEFAULT_MODEL, mid)
         self.assertEqual(video.resolve("seedance"), "dreamina-seedance-2-0-fast-260128")
         self.assertEqual(video.resolve("seedance-fast"), "dreamina-seedance-2-0-fast-260128")
         ep, body = video.build(mid, "fox", 4, "720p", "9:16")

@@ -20,7 +20,7 @@ Schema: `references/shotlist-schema.md`. Examples: `examples/*.json`.
 4. **Plan (free):** `python3 scripts/pipeline.py plan shots.json` → per-shot and total estimate plus
    items it cannot price (keyframes, voiceover).
 5. **Ask the user** with a short table: shots, model, seconds, est. USD, not-estimated items.
-   Do not continue without an explicit yes. If they want it cheaper, re-route (480p drafts, fewer seconds).
+   Do not continue without an explicit yes. If they want it cheaper, use Seedance Mini (the default; ~$0.031/s at 480p and 720p, 4–15 s, max 720p) or fewer seconds. 480p is not cheaper than 720p on Mini.
 6. **Run (paid):** `python3 scripts/pipeline.py run shots.json --approve-estimate <video_est_usd>`.
    The script refuses if the number does not match the current plan. Up to 4 shots in parallel (`--parallel`).
 7. **If anything fails or times out:** read `failed`, fix, run the same command again. Finished shots

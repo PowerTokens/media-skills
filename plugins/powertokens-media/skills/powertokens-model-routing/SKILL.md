@@ -15,6 +15,15 @@ Decide the model before writing prompts. Load a reference only when you need its
 - `references/image-and-speech-models.md` — Seedream and MiniMax speech
 - `references/decision-examples.md` — worked routing decisions
 
+## Credentials
+
+This skill does not spend by itself. If `python3 scripts/pt_login.py status` is `ok: true`, or a live check such as `python3 scripts/pt_models.py` returns HTTP 200 — including a re-check after a new key — **ask a yes/no to continue. Do not stop at a status dump or a model list.** Do not explain HTTP 200 unless they ask. Do not say only that they can continue.
+
+- A plan or estimate was already shown: restate the **model** and **est. cost**, ask whether to continue that generation, and wait for an explicit yes before the generation skill spends. A yes from before the key wall does not replace this question.
+- No plan yet: ask whether to proceed with **handing off to the generation skill's intake or a `--dry-run` / `plan`**. That yes only starts the unpaid step. Routing is not permission to spend.
+- If not ok: the user creates a key at https://powertokens.ai/api-keys?utm_source=media-skills&utm_medium=skill&utm_campaign=media-skills and sets `POWERTOKENS_API_KEY`. Browser sign-in (`pt_login.py login`) is not enabled yet. Never ask for the key in chat.
+- Ask in the user's language. If they already said yes to this question for this plan, do not ask again. Canonical wording: repo `docs/auth-after-verify.md`.
+
 ## Quick routing (video)
 
 | Need | Pick | Why |
@@ -32,7 +41,7 @@ Rules of thumb:
 3. Wan 3.0 cannot mix reference images with first/last frame in one request (PT docs).
 4. Kling v3 has no `seed`; do not promise exact re-rolls.
 5. Always run `--dry-run` / `pipeline.py plan` and show the estimate before paid work.
-6. Confirm availability with `python3 scripts/pt_models.py --filter <family>` when unsure; if a model id is not listed for the user's account, do not use it.
+6. Confirm availability with `python3 scripts/pt_models.py --filter <family>` when unsure; if a model id is not listed for the user's account, do not use it. HTTP 200 on that list is a key check — follow **Credentials** above instead of stopping on the list.
 
 Do not route to models not listed here, even if the account exposes more.
 

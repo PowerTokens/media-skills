@@ -22,6 +22,16 @@ Examples (different category trees):
 
 Any product-ad where the real SKU has fixed **structure/parts** (closures, soles, zippers, ports, pumps, straps, bezels, logos). Seedream often invents hybrids — catch them before i2v burns budget.
 
+## Credentials
+
+`python3 scripts/pt_login.py status` before any vision call or other spend. If not ok: the user creates a key at https://powertokens.ai/api-keys?utm_source=media-skills&utm_medium=skill&utm_campaign=media-skills and sets `POWERTOKENS_API_KEY`. Browser sign-in (`pt_login.py login`) is not enabled yet. Never ask for the key in chat.
+
+**Key just verified** (`ok: true`, or HTTP 200 on a live check such as `python3 scripts/pt_models.py`), including a re-check after a new key: **ask a yes/no to continue. Do not stop at a status dump.** Do not explain HTTP 200 unless they ask. Do not say only that they can continue.
+
+- A plan or estimate was already shown: restate the **model** and **est. cost**, ask whether to continue that generation, and wait for an explicit yes before a vision call, `run`, or any other spend. A yes from before the key wall does not replace this question.
+- No plan yet: ask whether to proceed with **the product bible (category → subtype → parts)**. That yes only starts the unpaid step. Vision QC spends — confirm again before that call.
+- Ask in the user's language. If they already said yes to this question for this plan, do not ask again. Canonical wording: repo `docs/auth-after-verify.md`.
+
 ## Agent workflow (required order)
 
 Do **not** jump to lid-specific fields. Always:

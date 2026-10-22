@@ -92,7 +92,7 @@ The agent picks the skill, calls PowerTokens, polls the job, and writes files un
 | `powertokens-pipeline` | JSON shot list → keyframes → clips → VO → assembled MP4 + captions; estimate first |
 | `powertokens-product-ad` | Product URL/photo → claim sheet → vertical ad (storyboard, i2v, VO, captions) |
 | `powertokens-product-qc` | Generic product bible (category → subtype → parts) + part-detail unify + vision QC |
-| `powertokens-ugc-ad` | UGC / talking-head ads with a consistent fictional persona |
+| `powertokens-ugc-ad` | UGC / talking-head ads: category beats, cost gate before spend, character bible when someone is on camera |
 | `powertokens-short-drama` | Multi-shot episodes with character refs |
 | `powertokens-social-variants` | 9:16 / 1:1 / 16:9, hook A/B, cut-downs |
 | `powertokens-bilingual-voiceover` | English + Chinese VO of the same cut |
@@ -102,37 +102,48 @@ Scripts are plain **Python 3.8+** stdlib — nothing to `pip install`. Assembly 
 
 ## Install
 
-### Claude Code (plugin marketplace)
+The pack is one plugin, `powertokens-media`. Installing that plugin loads every skill. Codex and Claude Code do not have a separate install-all flag. `marketplace add` only registers the source. The plugin install is the whole pack.
+
+### Whole pack
+
+**Claude Code**
 
 ```text
 /plugin marketplace add PowerTokens/media-skills
 /plugin install powertokens-media@powertokens
 ```
 
-Or copy skill folders:
-
-```bash
-git clone https://github.com/PowerTokens/media-skills
-cp -r media-skills/plugins/powertokens-media/skills/* ~/.claude/skills/
-```
-
-### Codex
-
-```text
-$skill-installer install https://github.com/PowerTokens/media-skills/tree/main/plugins/powertokens-media/skills/powertokens-video
-```
-
-(repeat for other skills), or:
+**Codex**
 
 ```bash
 codex plugin marketplace add PowerTokens/media-skills
+codex plugin add powertokens-media@powertokens
 ```
 
-Manual: copy into `~/.codex/skills/` (or `~/.agents/skills/`) and restart.
+Start a new Codex thread after install so the bundled skills load.
+
+**Copy every skill folder**
+
+```bash
+git clone https://github.com/PowerTokens/media-skills
+cp -R media-skills/plugins/powertokens-media/skills/* ~/.codex/skills/
+```
+
+Claude Code uses `~/.claude/skills/`. Other hosts often use `~/.agents/skills/`. Restart the app after copying.
+
+### One skill
+
+Codex `$skill-installer` installs a single folder. Change the last segment to any id in the skills table:
+
+```text
+$skill-installer install https://github.com/PowerTokens/media-skills/tree/main/plugins/powertokens-media/skills/powertokens-product-ad
+```
+
+Or copy that one folder into `~/.codex/skills/`, `~/.claude/skills/`, or `~/.agents/skills/`.
 
 ### Other Agent Skills hosts
 
-Any tool that loads `SKILL.md` folders can use `plugins/powertokens-media/skills/`.
+Any tool that loads `SKILL.md` folders can use `plugins/powertokens-media/skills/`. Copy the whole `skills` directory for the pack, or one skill folder for a single skill.
 
 ## Connect your PowerTokens account
 

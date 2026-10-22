@@ -1,5 +1,8 @@
 # UGC checklist
-- [ ] Hooks/captions/spoken lines map to a sourced claim sheet (powertokens-product-ad `references/copy.md`); no mood-only filler
+- [ ] Category beat recipe followed (`references/beats.md`); one spoken line per shot
+- [ ] Cost gate done before any paid call: `validate` → `plan` → explicit yes → `run --approve-estimate` (speech tests included)
+- [ ] Face on camera: character bible (`character_bible` or inline `characters` with description) and `validate` passed. Hands-only: `characters_on_camera` false and no character ids
+- [ ] Hooks/captions/spoken lines map to a sourced claim sheet (product-ad copy brief); no mood-only filler
 - [ ] Persona identical across shots (same ref image + same description)
 - [ ] Persona is fictional; no real-person likeness; no fake "verified buyer" claims
 - [ ] If a real product is on camera: use `powertokens-product-qc` bible (category → subtype → parts) or at least packshot refs + "structure unchanged"

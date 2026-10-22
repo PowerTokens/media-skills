@@ -1,14 +1,30 @@
 [
- {
-  "query": "make a ugc style testimonial ad for my serum",
-  "should_trigger": true
- },
- {
-  "query": "creator style unboxing video for my headphones",
-  "should_trigger": true
- },
- {
-  "query": "analyze my tiktok follower stats",
-  "should_trigger": false
- }
+  {
+    "query": "make a ugc style testimonial ad for my serum",
+    "should_trigger": true
+  },
+  {
+    "query": "creator style unboxing video for my headphones",
+    "should_trigger": true
+  },
+  {
+    "query": "talking head tiktok ad that looks filmed on a phone",
+    "should_trigger": true
+  },
+  {
+    "query": "turn this product URL into a clean packshot commercial",
+    "should_trigger": false
+  },
+  {
+    "query": "write episode 3 of a short drama with the same cast",
+    "should_trigger": false
+  },
+  {
+    "query": "one 5 second clip of coffee pouring, no ad structure",
+    "should_trigger": false
+  },
+  {
+    "query": "analyze my tiktok follower stats",
+    "should_trigger": false
+  }
 ]

@@ -66,8 +66,10 @@ Flags on `run`: `--vision-qc` · `--skip-vision-qc` · `--auto-approve-hero` · 
 }
 ```
 
-- `kind: short-drama` requires `character_bible` **or** inline `characters` with non-empty `description` (schema via `character_qc.py`).
-- `kind: ugc-ad` with characters: same schema check (description required).
+- `kind: short-drama` requires `character_bible` **or** inline `characters` with non-empty `description` (schema via `character_qc.py`). `validate` / `plan` / `run` refuse without it. `"characters_on_camera": false` does not waive a short drama.
+- `kind: ugc-ad` fails closed the same way when anyone is on camera. Hands-only / no face: set `"characters_on_camera": false` and do not set shot `characters`, `on_camera`, or `face_cam`.
+- Any other shot list that sets those on-camera fields also refuses without a valid bible.
+- When a shot names a character that has `forbid`, `pipeline.py` appends a `CHARACTER LOCK` line to that shot prompt (the description is prepended as well).
 - Example: `examples/character-bible.ning.json`.
 
 ## Claims lint

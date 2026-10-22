@@ -12,7 +12,9 @@
 - [ ] Shot list has `"kind": "product-ad"` and `"product_bible"`; `pipeline validate` passes
 - [ ] PRODUCT LOCK constraints present on every keyframe + i2v prompt (pipeline injects from bible)
 - [ ] Same approved product refs reused across product-visible shots; no invented hybrid parts
-- [ ] Hero / packshot keyframes human-OK (or vision QC pass) before i2v
+- [ ] Every product keyframe machine-QC passed (`qc: pass`) before any i2v; a failed still was retried alone; the run stopped in the keyframe phase with shot + why (structure, third-party logo, …) if it still failed
+- [ ] i2v submitted as one `--parallel` batch only after that gate — no per-shot video while another keyframe is in QC
+- [ ] Full-strip human still review only if the user asked; `hero: true` still uses `approve-hero` — no forced picker
 - [ ] Product visible by 3 s; shape, label and colors match the real product in every shot
 - [ ] No invented claims, prices, awards, or certifications; end-card price only if user-provided / on approved sheet
 - [ ] Deliverable is the MP4 with captions **burned in** (`assemble` without `--no-captions`; JSON `captions_burned: true`, no `warning`). A sidecar `captions.srt`, or telling the user to open it, is incomplete unless they explicitly asked for softsubs only

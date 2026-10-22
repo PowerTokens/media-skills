@@ -14,8 +14,19 @@
 
 Vision QC / hero (product-ad):
   run ...                 # vision QC ON by default when product_bible / kind=product-ad
-  run ... --skip-vision-qc
+  run ... --skip-vision-qc   # also disables the keyframe batch gate
   run ... --auto-approve-hero   # CI: skip hero pause
+
+Product-ad continuity (default on for kind=product-ad):
+  1. Seedream + machine vision QC for every keyframe. A fail regenerates that
+     still only (one retry). Sibling shots do not start video.
+  2. If any still is still failing, stop in the keyframe phase and report
+     which shots and why (structure, third-party logo, hybrid part, …).
+     Failed stills are never sent to i2v.
+  3. When every required keyframe is qc:pass, submit i2v in one --parallel batch.
+  Vision API down is fail-closed unless --skip-vision-qc.
+  Human review of the full still strip is off unless a shot has hero:true
+  or the user asked to review stills.
 
 State lives in <workdir>/state.json. Every task id is saved the moment it exists, so `run` again
 resumes (polls/downloads) instead of paying twice. Schema: references/shotlist-schema.md.
@@ -204,6 +215,185 @@ def vision_qc_wanted(spec, vision_qc_flag, skip_vision_qc):
     return is_product_ad(spec)
 
 
+def keyframe_batch_gate_active(spec, opts):
+    """Product-ad default: no new i2v/video until every required keyframe QC-passes.
+
+    `--skip-vision-qc` turns the machine gate off (explicit override).
+    Other kinds keep the historical per-shot path.
+    """
+    opts = opts or {}
+    if opts.get("skip_vision_qc"):
+        return False
+    if not is_product_ad(spec):
+        return False
+    return vision_qc_wanted(spec, opts.get("vision_qc"), False)
+
+
+def keyframe_qc_passed(st):
+    """True when state records machine vision QC pass (qc: pass or equivalent)."""
+    if not st:
+        return False
+    if st.get("vision_qc_pass"):
+        return True
+    qc = st.get("qc")
+    if qc in ("pass", True):
+        return True
+    if isinstance(qc, dict) and qc.get("pass") is True:
+        return True
+    verdict = st.get("vision_qc")
+    if isinstance(verdict, dict) and verdict.get("pass") is True and st.get("status") != "failed":
+        return True
+    return False
+
+
+def keyframe_batch_blockers(spec, state, opts=None):
+    """Shot ids that still block the product-ad i2v batch.
+
+    A keyframe shot blocks until machine QC passes. Shots with no keyframe do
+    not block. Already-finished clips and already-submitted task ids are exempt
+    so resume does not wait; they are not new submits.
+    """
+    if not keyframe_batch_gate_active(spec, opts):
+        return []
+    shots_state = (state or {}).get("shots") or {}
+    blocked = []
+    for shot in spec.get("shots") or []:
+        sid = shot.get("id")
+        if not sid or not shot.get("keyframe"):
+            continue
+        st = shots_state.get(sid) or {}
+        if st.get("status") == "done":
+            continue
+        if st.get("task_id"):
+            continue
+        if keyframe_qc_passed(st):
+            continue
+        blocked.append(sid)
+    return blocked
+
+
+def _qc_reasons(verdict=None, err=None):
+    """Short why-lines from a vision verdict (structure, logo, hybrid part, API)."""
+    reasons = []
+
+    def add(text):
+        text = str(text).strip()
+        if text and text not in reasons:
+            reasons.append(text)
+
+    if isinstance(verdict, dict):
+        for item in verdict.get("failures") or []:
+            add(item)
+        mode = verdict.get("structure_mode_seen")
+        if mode and str(mode).strip() not in ("", "unknown"):
+            add("structure_mode_seen=%s" % mode)
+        answers = verdict.get("rubric_answers") or {}
+        if isinstance(answers, dict):
+            for key in ("structure_matches_refs", "no_hybrid_or_invented_parts",
+                        "colors_finish_ok", "logo_policy_ok", "proportions_silhouette_ok"):
+                if key not in answers:
+                    continue
+                val = answers.get(key)
+                if str(val).strip().lower() in ("no", "false", "fail", "unclear"):
+                    add("%s: %s" % (key, val))
+    if err and not reasons:
+        add(err)
+    return reasons or ["machine vision QC failed"]
+
+
+def keyframe_qc_why(st):
+    """Why a shot is still blocking the i2v batch."""
+    st = st or {}
+    stored = st.get("qc_failures")
+    if isinstance(stored, list) and stored:
+        return [str(r) for r in stored if str(r).strip()]
+    verdict = st.get("vision_qc")
+    if isinstance(verdict, dict) and not verdict.get("pass", True):
+        return _qc_reasons(verdict, st.get("error"))
+    if st.get("error"):
+        return [str(st["error"])]
+    return ["machine vision QC not passed"]
+
+
+def keyframe_batch_gate_report(spec, state, blocked, failures=None):
+    """Per blocked shot: qc, whether the one keyframe retry already ran, and why."""
+    failures = failures or {}
+    shots_state = (state or {}).get("shots") or {}
+    report = []
+    for sid in blocked:
+        st = shots_state.get(sid) or {}
+        why = keyframe_qc_why(st)
+        if why == ["machine vision QC not passed"]:
+            err = (failures.get(sid) or {}).get("error") or st.get("error")
+            if err:
+                why = [str(err)]
+        report.append({
+            "shot": sid,
+            "qc": st.get("qc") or "fail",
+            "why": why,
+            "retried": bool(st.get("vision_qc_retry")),
+        })
+    return report
+
+
+def keyframe_batch_gate_message(spec, state, blocked, failures=None):
+    """Fail-closed explanation: which stills passed, which still block video, and why."""
+    passed = []
+    shots_state = (state or {}).get("shots") or {}
+    blocked_set = set(blocked)
+    for shot in spec.get("shots") or []:
+        sid = shot.get("id")
+        if not sid or sid in blocked_set or not shot.get("keyframe"):
+            continue
+        if keyframe_qc_passed(shots_state.get(sid) or {}):
+            passed.append(sid)
+    report = keyframe_batch_gate_report(spec, state, blocked, failures)
+    parts = []
+    for row in report:
+        when = "after one keyframe retry" if row["retried"] else "keyframe QC"
+        parts.append("%s (%s): %s" % (row["shot"], when, "; ".join(row["why"])))
+    msg = (
+        "Product-ad keyframe QC gate: stopped in the keyframe phase. "
+        "Not starting any i2v or video job until every shot keyframe passes "
+        "machine vision QC (qc: pass). Failed stills are not sent to video. "
+        "Blocked: %s. " % " | ".join(parts)
+    )
+    if passed:
+        msg += (
+            "QC-passed stills were kept and no sibling video was submitted: %s. "
+            % ", ".join(passed)
+        )
+    msg += (
+        "Retry or fix the blocked stills only, then re-run the same command. "
+        "Human review of the still strip stays optional; only hero:true pauses for "
+        "approve-hero unless the user asked to review stills."
+    )
+    return msg, passed, report
+
+
+def _mark_vision_qc_pass(st, skipped=None):
+    st["vision_qc_pass"] = True
+    if skipped:
+        st["qc"] = "skipped"
+        st["vision_qc_skipped"] = skipped
+    else:
+        st["qc"] = "pass"
+
+
+def _mark_vision_qc_fail(st, reasons=None, retried=False):
+    st["qc"] = "fail"
+    st["vision_qc_pass"] = False
+    if reasons is not None:
+        cleaned = []
+        for item in reasons:
+            text = str(item).strip()
+            if text and text not in cleaned:
+                cleaned.append(text)
+        st["qc_failures"] = cleaned or ["machine vision QC failed"]
+    if retried:
+        st["vision_qc_retry"] = True
+
+
 def hero_approvals_path(spec):
     return Path(spec["_workdir"]) / "hero_approvals.json"
 
@@ -267,7 +457,8 @@ def cmd_approve_hero(spec, shot_id):
         st["status"] = "keyframe_ready"
         save_state(spec, state)
     pt.emit({"ok": True, "shot": shot_id, "keyframe": kf,
-             "next_step": "pipeline.py run <shotlist> --approve-estimate <usd>  # resumes i2v for this shot"})
+             "next_step": "pipeline.py run <shotlist> --approve-estimate <usd>  "
+                          "# product-ad starts the i2v batch only after every keyframe QC pass"})
     return 0
 
 
@@ -315,16 +506,20 @@ def ensure_keyframe_qc_and_hero(spec, s, cred, state, wd, opts):
     if want_qc and not st.get("vision_qc_pass"):
         verdict, err = run_keyframe_vision_qc(spec, s, cred, kf_path, fail_closed=fail_closed)
         if err and verdict is None and fail_closed:
+            reasons = _qc_reasons(None, err)
+            _mark_vision_qc_fail(st, reasons=reasons)
             st.update(status="failed", error=err)
             save_state(spec, state)
-            raise pt.PTError(err, "VISION_QC", 4)
+            raise pt.PTError(
+                "%s: %s. Stopped in the keyframe phase; not starting i2v for this shot or any sibling."
+                % (sid, err), "VISION_QC", 4)
         if verdict is not None:
             st["vision_qc"] = verdict
             save_state(spec, state)
             if not verdict.get("pass"):
-                # One regenerate with augmented negatives
-                print("[%s] vision QC fail: %s — regenerating keyframe once" % (
-                    sid, "; ".join(verdict.get("failures") or [])), file=sys.stderr, flush=True)
+                # One regenerate of this still only. Do not touch sibling shots.
+                print("[%s] vision QC fail: %s — regenerating this keyframe only (no i2v)" % (
+                    sid, "; ".join(_qc_reasons(verdict))), file=sys.stderr, flush=True)
                 kf = dict(s.get("keyframe") or {})
                 kf["prompt"] = product_qc.augment_prompt_negatives(
                     kf.get("prompt") or s.get("prompt") or "", verdict.get("failures"))
@@ -342,28 +537,35 @@ def ensure_keyframe_qc_and_hero(spec, s, cred, state, wd, opts):
                 save_state(spec, state)
                 verdict2, err2 = run_keyframe_vision_qc(spec, s, cred, kf_path, fail_closed=fail_closed)
                 if err2 and verdict2 is None and fail_closed:
+                    reasons = _qc_reasons(None, err2)
+                    _mark_vision_qc_fail(st, reasons=reasons, retried=True)
                     st.update(status="failed", error=err2)
                     save_state(spec, state)
-                    raise pt.PTError(err2, "VISION_QC", 4)
+                    raise pt.PTError(
+                        "%s: %s. Stopped in the keyframe phase; not starting i2v for this shot or any sibling."
+                        % (sid, err2), "VISION_QC", 4)
                 if verdict2 is not None:
                     st["vision_qc"] = verdict2
                     st["vision_qc_retry"] = True
                     if not verdict2.get("pass"):
-                        msg = "vision QC failed after retry: %s" % (
-                            "; ".join(verdict2.get("failures") or ["unknown"]))
+                        reasons = _qc_reasons(verdict2)
+                        msg = "vision QC failed after one keyframe retry: %s" % "; ".join(reasons)
+                        _mark_vision_qc_fail(st, reasons=reasons, retried=True)
                         st.update(status="failed", error=msg)
                         save_state(spec, state)
-                        raise pt.PTError("%s: %s (not starting i2v)" % (sid, msg), "VISION_QC", 4)
-                    st["vision_qc_pass"] = True
+                        raise pt.PTError(
+                            "%s: %s. Stopped in the keyframe phase; failed still not sent to video, "
+                            "and no sibling i2v was started." % (sid, msg),
+                            "VISION_QC", 4)
+                    _mark_vision_qc_pass(st)
                 elif not fail_closed:
-                    st["vision_qc_pass"] = True  # soft skip
+                    _mark_vision_qc_pass(st, skipped=err2 or "unavailable")
                 save_state(spec, state)
             else:
-                st["vision_qc_pass"] = True
+                _mark_vision_qc_pass(st)
                 save_state(spec, state)
         elif not fail_closed:
-            st["vision_qc_pass"] = True
-            st["vision_qc_skipped"] = err or "unavailable"
+            _mark_vision_qc_pass(st, skipped=err or "unavailable")
             save_state(spec, state)
 
     # Hero gate
@@ -454,45 +656,12 @@ def gen_keyframe(spec, s, cred, out):
     return str(Path(out).resolve())
 
 
-def run_shot(spec, shot, cred, state, wd, opts=None):
-    opts = opts or {}
-    s = shot_settings(spec, shot)
-    sid = s["id"]
-    st = state["shots"].setdefault(sid, {})
-    out = str(wd / "clips" / ("%s.mp4" % sid))
-    if st.get("status") == "done" and Path(st.get("output", "")).is_file():
-        return sid, "skipped (done)"
-    if st.get("status") == "hero_pending" and not (
-            opts.get("auto_approve_hero") or is_hero_approved(spec, sid, st.get("keyframe"))):
-        mark_hero_pending(spec, sid, st.get("keyframe"))
-        return sid, "hero_pending"
-    if st.get("task_id"):
-        print("[%s] resuming task %s" % (sid, st["task_id"]), file=sys.stderr, flush=True)
-    else:
-        image = resolve_path(spec, s.get("image"))
-        if s.get("keyframe"):
-            kf_out = str(wd / "keyframes" / ("%s.png" % sid))
-            if not Path(st.get("keyframe", "")).is_file():
-                st["keyframe"] = gen_keyframe(spec, s, cred, kf_out)
-                save_state(spec, state)
-            image, pause = ensure_keyframe_qc_and_hero(spec, s, cred, state, wd, opts)
-            if pause == "hero_pending":
-                return sid, "hero_pending"
-        refs = [] if image and s["model"].startswith("wan") else ref_images(spec, s)
-        endpoint, body = video.build(s["model"], compose_prompt(spec, s), s["duration"], s["resolution"],
-                                     s["ratio"], image=image, audio=s["audio"], refs=refs)
-        code, resp, _ = pt.request("POST", endpoint, body, cred=cred)
-        if code not in (200, 201, 202):
-            st.update(status="failed", error="submit HTTP %s" % code)
-            save_state(spec, state)
-            pt.raise_for(code, resp, "Submit %s" % sid)
-        data = resp.get("data") if isinstance(resp.get("data"), dict) else {}
-        task = resp.get("id") or resp.get("task_id") or data.get("task_id")
-        if not task:
-            pt.raise_for(code, resp, "Submit %s (no task id)" % sid)
-        st.update(task_id=task, model=s["model"], i2v=endpoint.endswith("image2video"), status="submitted",
-                  submitted_at=int(time.time()))
-        save_state(spec, state)  # saved BEFORE polling -> never pay twice
+def _hero_blocks_video(spec, sid, st, opts):
+    return st.get("status") == "hero_pending" and not (
+        opts.get("auto_approve_hero") or is_hero_approved(spec, sid, st.get("keyframe")))
+
+
+def _await_clip(spec, cred, state, st, sid, out):
     try:
         st["output"] = video.wait_and_download(cred, st["model"], st["task_id"], out, st.get("i2v", False))
         st["status"] = "done"
@@ -502,6 +671,101 @@ def run_shot(spec, shot, cred, state, wd, opts=None):
         raise
     save_state(spec, state)
     return sid, "done"
+
+
+def _prepare_keyframe(spec, s, cred, state, wd, opts):
+    """Generate the Seedream still if needed, then vision QC + hero. No video submit."""
+    sid = s["id"]
+    st = state["shots"].setdefault(sid, {})
+    kf_out = str(wd / "keyframes" / ("%s.png" % sid))
+    if not Path(st.get("keyframe", "")).is_file():
+        st["keyframe"] = gen_keyframe(spec, s, cred, kf_out)
+        save_state(spec, state)
+    return ensure_keyframe_qc_and_hero(spec, s, cred, state, wd, opts)
+
+
+def run_shot(spec, shot, cred, state, wd, opts=None, phase="all"):
+    """One shot.
+
+    phase `all` — keyframe (if any) then video. Used when the product-ad batch
+    gate is off. phase `keyframes` — still + machine QC only. phase `video` —
+    submit or resume a clip; product-ad refuses unless every keyframe QC-passed.
+    """
+    opts = opts or {}
+    s = shot_settings(spec, shot)
+    sid = s["id"]
+    st = state["shots"].setdefault(sid, {})
+    out = str(wd / "clips" / ("%s.mp4" % sid))
+    if st.get("status") == "done" and Path(st.get("output", "")).is_file():
+        return sid, "skipped (done)"
+    if st.get("task_id") and phase == "keyframes":
+        return sid, "video_already_submitted"
+    # Hero pause blocks video, not a missing QC. Re-check a still that has not passed.
+    if _hero_blocks_video(spec, sid, st, opts) and (phase != "keyframes" or keyframe_qc_passed(st)):
+        mark_hero_pending(spec, sid, st.get("keyframe"))
+        return sid, "hero_pending"
+    if st.get("task_id"):
+        print("[%s] resuming task %s" % (sid, st["task_id"]), file=sys.stderr, flush=True)
+        return _await_clip(spec, cred, state, st, sid, out)
+
+    if phase == "keyframes" and not s.get("keyframe"):
+        return sid, "no_keyframe"
+
+    # Video phase never regenerates a failing still and never submits one.
+    if phase == "video" and keyframe_batch_gate_active(spec, opts):
+        if s.get("keyframe") and not keyframe_qc_passed(st):
+            print("[%s] qc-gate: failed or unchecked keyframe is not sent to video" % sid,
+                  file=sys.stderr, flush=True)
+            return sid, "qc_gate"
+        blocked = keyframe_batch_blockers(spec, state, opts)
+        if blocked:
+            print("[%s] qc-gate: not starting video; blocked keyframes: %s" % (sid, ", ".join(blocked)),
+                  file=sys.stderr, flush=True)
+            return sid, "qc_gate"
+
+    image = resolve_path(spec, s.get("image"))
+    if s.get("keyframe"):
+        image, pause = _prepare_keyframe(spec, s, cred, state, wd, opts)
+        if pause == "hero_pending":
+            return sid, "hero_pending"
+        if phase == "keyframes":
+            if st.get("status") not in ("hero_pending", "failed"):
+                st["status"] = "keyframe_ready"
+                save_state(spec, state)
+            return sid, "keyframe_ready"
+
+    if phase == "keyframes":
+        return sid, "no_keyframe"
+
+    if s.get("keyframe") and st.get("qc") == "fail":
+        print("[%s] qc-gate: failed still is not sent to video" % sid, file=sys.stderr, flush=True)
+        return sid, "qc_gate"
+    if keyframe_batch_gate_active(spec, opts):
+        blocked = keyframe_batch_blockers(spec, state, opts)
+        if blocked:
+            if keyframe_qc_passed(st) and st.get("status") not in ("hero_pending", "failed", "done"):
+                st["status"] = "keyframe_ready"
+                save_state(spec, state)
+            print("[%s] qc-gate: not starting video; blocked keyframes: %s" % (sid, ", ".join(blocked)),
+                  file=sys.stderr, flush=True)
+            return sid, "qc_gate"
+
+    refs = [] if image and s["model"].startswith("wan") else ref_images(spec, s)
+    endpoint, body = video.build(s["model"], compose_prompt(spec, s), s["duration"], s["resolution"],
+                                 s["ratio"], image=image, audio=s["audio"], refs=refs)
+    code, resp, _ = pt.request("POST", endpoint, body, cred=cred)
+    if code not in (200, 201, 202):
+        st.update(status="failed", error="submit HTTP %s" % code)
+        save_state(spec, state)
+        pt.raise_for(code, resp, "Submit %s" % sid)
+    data = resp.get("data") if isinstance(resp.get("data"), dict) else {}
+    task = resp.get("id") or resp.get("task_id") or data.get("task_id")
+    if not task:
+        pt.raise_for(code, resp, "Submit %s (no task id)" % sid)
+    st.update(task_id=task, model=s["model"], i2v=endpoint.endswith("image2video"), status="submitted",
+              submitted_at=int(time.time()))
+    save_state(spec, state)  # saved BEFORE polling -> never pay twice
+    return _await_clip(spec, cred, state, st, sid, out)
 
 
 def run_voiceover(spec, cred, state, wd):
@@ -595,6 +859,34 @@ def silence_cmd(path, seconds):
             "-c:a", "aac", path]
 
 
+def _run_shot_pool(spec, shots, cred, state, wd, opts, parallel, phase, results, failures, hero_pending,
+                   cancel_on):
+    """Run shots together. Keyframe phase must not cancel siblings on VISION_QC."""
+    if not shots:
+        return
+    workers = max(1, min(parallel, 4))
+    with cf.ThreadPoolExecutor(max_workers=workers) as ex:
+        futs = {ex.submit(run_shot, spec, shot, cred, state, wd, opts, phase): shot["id"]
+                for shot in shots}
+        for fut in cf.as_completed(futs):
+            sid = futs[fut]
+            try:
+                status = fut.result()[1]
+                results[sid] = status
+                if status == "hero_pending" and sid not in hero_pending:
+                    hero_pending.append(sid)
+                elif status == "qc_gate" and sid not in failures:
+                    failures[sid] = {
+                        "error_type": "VISION_QC",
+                        "error": "product-ad keyframe QC gate: i2v not started",
+                    }
+            except pt.PTError as exc:
+                failures[sid] = {"error_type": exc.kind, "error": str(exc)}
+                if exc.kind in cancel_on:
+                    for other in futs:
+                        other.cancel()
+
+
 def cmd_run(spec, approve, parallel, opts=None):
     opts = opts or {}
     p = plan(spec)
@@ -608,30 +900,54 @@ def cmd_run(spec, approve, parallel, opts=None):
     wd.mkdir(parents=True, exist_ok=True)
     state = load_state(spec)
     results, failures, hero_pending = {}, {}, []
-    with cf.ThreadPoolExecutor(max_workers=max(1, min(parallel, 4))) as ex:
-        futs = {ex.submit(run_shot, spec, shot, cred, state, wd, opts): shot["id"]
-                for shot in spec["shots"]}
-        for f in cf.as_completed(futs):
-            sid = futs[f]
-            try:
-                status = f.result()[1]
-                results[sid] = status
-                if status == "hero_pending":
-                    hero_pending.append(sid)
-            except pt.PTError as exc:
-                failures[sid] = {"error_type": exc.kind, "error": str(exc)}
-                if exc.kind in ("INSUFFICIENT_CREDITS", "AUTH", "NO_CREDENTIAL", "VISION_QC"):
-                    for other in futs:
-                        other.cancel()
+    gate = keyframe_batch_gate_active(spec, opts)
+    pay_cancel = ("INSUFFICIENT_CREDITS", "AUTH", "NO_CREDENTIAL")
+    qc_gate = None
+    if gate:
+        # Finish every still (including the one QC retry) before any video submit.
+        # A VISION_QC fail must not cancel sibling keyframes.
+        _run_shot_pool(spec, spec["shots"], cred, state, wd, opts, parallel, "keyframes",
+                       results, failures, hero_pending, ())
+        blocked = keyframe_batch_blockers(spec, state, opts)
+        if blocked or failures:
+            resume = []
+            for shot in spec["shots"]:
+                st = state["shots"].get(shot["id"]) or {}
+                if st.get("task_id") and not (
+                        st.get("status") == "done" and Path(st.get("output") or "").is_file()):
+                    resume.append(shot)
+            _run_shot_pool(spec, resume, cred, state, wd, opts, parallel, "video",
+                           results, failures, hero_pending, pay_cancel)
+            blocked = keyframe_batch_blockers(spec, state, opts)
+            if blocked:
+                msg, passed, report = keyframe_batch_gate_message(spec, state, blocked, failures)
+                print("[qc-gate] " + msg, file=sys.stderr, flush=True)
+                for row in report:
+                    sid = row["shot"]
+                    failures.setdefault(sid, {
+                        "error_type": "VISION_QC",
+                        "error": "%s: %s" % (sid, "; ".join(row["why"])),
+                    })
+                qc_gate = {"blocked": blocked, "passed": passed, "report": report,
+                           "stopped_in": "keyframe"}
+        if qc_gate is None and not failures:
+            _run_shot_pool(spec, spec["shots"], cred, state, wd, opts, parallel, "video",
+                           results, failures, hero_pending, pay_cancel + ("VISION_QC",))
+    else:
+        _run_shot_pool(spec, spec["shots"], cred, state, wd, opts, parallel, "all",
+                       results, failures, hero_pending, pay_cancel + ("VISION_QC",))
     vo_report = {"done": [], "blocked": [], "rewritten": []}
-    if not failures and not hero_pending:
+    if not failures and not hero_pending and not qc_gate:
         try:
             vo_report = run_voiceover(spec, cred, state, wd)
         except pt.PTError as exc:
             snap = voiceover_snapshot(spec, state)
             out = {"ok": False, "done": results, "failed": failures, "hero_pending": hero_pending,
                    "voiceover": snap["done"], "voiceover_blocked": snap["blocked"],
-                   "error_type": exc.kind, "error": str(exc), "state": str(state_path(spec))}
+                   "error_type": exc.kind, "error": str(exc), "state": str(state_path(spec)),
+                   "keyframe_batch_gate": gate}
+            if qc_gate:
+                out["qc_gate"] = qc_gate
             for key, val in exc.details.items():
                 if key in out:
                     continue
@@ -641,12 +957,16 @@ def cmd_run(spec, approve, parallel, opts=None):
             out["next_step"] = "Clips already saved are kept. Fix this error and run the same command again."
             pt.emit(out)
             return exc.exit_code
-    ok = not failures and not hero_pending and not vo_report["blocked"]
+    ok = not failures and not hero_pending and not qc_gate and not vo_report["blocked"]
     out = {"ok": ok, "done": results, "failed": failures, "hero_pending": hero_pending,
            "voiceover": vo_report["done"], "voiceover_blocked": vo_report["blocked"],
            "voiceover_rewritten": vo_report["rewritten"], "state": str(state_path(spec)),
-           "vision_qc": vision_qc_wanted(spec, opts.get("vision_qc"), opts.get("skip_vision_qc"))}
-    if failures:
+           "vision_qc": vision_qc_wanted(spec, opts.get("vision_qc"), opts.get("skip_vision_qc")),
+           "keyframe_batch_gate": gate}
+    if qc_gate:
+        out["qc_gate"] = qc_gate
+        out["next_step"] = keyframe_batch_gate_message(spec, state, qc_gate["blocked"], failures)[0]
+    elif failures:
         out["next_step"] = "Fix the cause, then run the same command again; finished and submitted shots resume."
     elif vo_report["blocked"]:
         out["partial"] = True
@@ -654,13 +974,14 @@ def cmd_run(spec, approve, parallel, opts=None):
         out["next_step"] = speech.POLICY_NEXT_STEP
     elif hero_pending:
         out["next_step"] = (
-            "Review keyframes, then: pipeline.py approve-hero <shotlist> <shot_id> "
+            "Review hero keyframes only (the full still strip is not a required pause), then: "
+            "pipeline.py approve-hero <shotlist> <shot_id> "
             "for each of %s; re-run with the same --approve-estimate. "
             "Or pass --auto-approve-hero for CI." % ", ".join(hero_pending)
         )
         out["hero_pending_file"] = str(hero_pending_path(spec))
     pt.emit(out)
-    if failures:
+    if failures or qc_gate:
         return 4
     if vo_report["blocked"]:
         return 7
@@ -675,7 +996,8 @@ def cmd_status(spec):
     for shot in spec["shots"]:
         st = state["shots"].get(shot["id"], {})
         rows.append({"id": shot["id"], "status": st.get("status", "pending"), "task_id": st.get("task_id"),
-                     "output": st.get("output"), "error": st.get("error")})
+                     "output": st.get("output"), "qc": st.get("qc"), "qc_failures": st.get("qc_failures"),
+                     "error": st.get("error")})
     pt.emit({"project": spec["project"], "shots": rows, "voiceover": state.get("voiceover", {})})
 
 
@@ -936,7 +1258,9 @@ def main():
     r = sub.add_parser("run")
     r.add_argument("shotlist")
     r.add_argument("--approve-estimate", type=float, help="the video_est_usd from `plan`, after the user agreed")
-    r.add_argument("--parallel", type=int, default=2, help="concurrent shots (1-4)")
+    r.add_argument("--parallel", type=int, default=2,
+                   help="concurrent shots (1-4). product-ad finishes every keyframe QC first, "
+                        "then uses this as one i2v batch")
     r.add_argument("--require-product-bible", action="store_true",
                    help="refuse if product_bible missing (also auto when kind=product-ad)")
     r.add_argument("--require-character-bible", action="store_true",
@@ -944,7 +1268,8 @@ def main():
     r.add_argument("--vision-qc", dest="vision_qc", action="store_true", default=None,
                    help="force post-keyframe vision QC on (default: on for product-ad)")
     r.add_argument("--skip-vision-qc", action="store_true",
-                   help="disable vision QC (product-ad otherwise fail-closed if vision API unavailable)")
+                   help="disable vision QC and the product-ad keyframe batch gate "
+                        "(product-ad otherwise fail-closed if the vision API is down)")
     r.add_argument("--auto-approve-hero", action="store_true",
                    help="do not pause hero:true shots for human keyframe OK (CI)")
     ah = sub.add_parser("approve-hero", help="approve a hero keyframe so run can continue to i2v")

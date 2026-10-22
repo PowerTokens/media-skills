@@ -4,7 +4,7 @@ description: Produce a short vertical product ad (TikTok, Reels, Shorts, paid so
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.3.9"
+  version: "0.3.10"
 ---
 
 # Product ad (URL / image → vertical ad)
@@ -23,8 +23,8 @@ Examples: `examples/claim-sheet.json`, `examples/product-ad.json`.
 4. **Script from approved claims only** — hook (≤ 2 s) encodes a verified claim → problem/desire → product moment → proof → CTA. 30–40 words VO for 15 s. Captions = compressed claims (see `copy.md`).
 5. **Storyboard** — 4–6 shots; one action + one camera move each; caption per shot mapped to claim ids. On-screen cuts can be ~2–4 s; generate draft clips at 4–5 s (Mini's minimum) and trim in assembly. Show as a table.
 6. **Route** — drafts `seedance-mini` (`dreamina-seedance-2-0-mini-260615`) at 480p or 720p, 4–15 s, ~$0.031/s (no 1080p); hero product turn `kling-v3` 1080p; see powertokens-model-routing.
-7. **Keyframes** — Seedream with the real packshot as reference at 9:16 (`keyframe` in the shot list). Download hero images from the PDP when the user did not attach files (credit the URL in the bible refs).
-8. **Shot list** → `validate` → `plan` → approval → `run`.
+7. **Keyframes, then one video batch** — Seedream the preview stills (usually 3–4) with the real packshot as reference at 9:16 (`keyframe` in the shot list). Download hero images from the PDP when the user did not attach files (credit the URL in the bible refs). See **Keyframe gate** below. Do not start image-to-video for any shot until every required keyframe has machine QC `pass`.
+8. **Shot list** → `validate` → `plan` → approval → `run --parallel <n>`. For product-ad, `run` itself finishes every keyframe QC, then submits i2v as one batch. Do not render one shot's video while another keyframe is still in QC.
 9. **Review clips**, offer single-shot re-takes (costs again).
 10. **Assemble** — `pipeline.py assemble` (VO + ducked audio + burned captions). Caption burn style **defaults to A** (`tiktok`); override with `assembly.caption_style` / `captions.py --style` (`tiktok`|`pill`|`caps-punch`|`zh`) when the user asks or language needs it — same pattern as finish presets, not a hard lock. A content-policy block on one VO line does not cancel the cut: other lines stay, and assemble does **not** require every VO file once the user accepts a partial (`assemble --allow-partial-vo` — silence under the missing line, clip audio / their BGM remains). Ask first. Then offer social variants (powertokens-social-variants).
 
@@ -51,7 +51,7 @@ Real SKUs have fixed **structure/parts** that Seedream invents wrong (wrong clos
 1. **Category → subtype → parts BOM** — identify 大类, 分型, then decompose `immutable.parts` `{id, role, how, states?}`. Write forbid from part risks; lock colors, logos, proportions, 1–5 refs (`powertokens-product-qc` / `examples/product-bible.*.json`). If a shot needs a separate part-detail ref (lid/sole/zipper/…), find it then **unify onto the hero product** — do not let a part-only crop rewrite body height or scene.
 2. Set shot list `"kind": "product-ad"` and `"product_bible": "<file>.json"`.
 3. Append `product_qc.py constraints` text into every keyframe prompt.
-4. After each keyframe: `pipeline.py run` vision QC (default on for product-ad; `MiniMax-M3` / glm-5.x) → one retry or stop (fail-closed if vision API down unless `--skip-vision-qc`); `hero: true` pauses until `approve-hero` (or `--auto-approve-hero`).
+4. **Keyframe gate** (below) — machine QC on every still, then one i2v batch. `hero: true` still pauses for `approve-hero` (or `--auto-approve-hero`).
 
 ### Third-party brands as props (hard rule)
 
@@ -66,6 +66,18 @@ Forbidden by default in keyframes, i2v clips, VO / captions / end-cards that nam
 Do not write legal-advice copy. Forbid the prop and rewrite it.
 
 Details: `powertokens-product-qc` and repo `docs/product-consistency-qc.md`.
+
+## Keyframe gate before any video
+
+For `kind: product-ad`, unify the preview keyframes, then video. Do not render s01 video while s03's keyframe is still in QC.
+
+1. Generate the preview keyframes (the product stills, usually 3–4, plus any other shot that has a `keyframe`).
+2. Machine vision QC every one of those stills. `pipeline.py run` does this for the whole list before it submits any i2v.
+3. **QC fail:** regenerate **only that keyframe** (one retry) and QC it again. Do not start i2v for that shot or for siblings that already passed.
+4. **Still failing after the retry:** stop in the keyframe phase. The run's `qc_gate.report` names each blocked shot and why (structure, third-party logo, hybrid part, logo policy, …). Failed stills are not sent to video. Fix those stills only, then re-run the same command.
+5. **Vision API down:** fail closed. No i2v. `--skip-vision-qc` is the override; it also turns this batch gate off.
+6. **All required keyframes `qc: pass`:** `run` submits i2v together (`--parallel`, one batch). Use that path. Do not call per-shot video while any keyframe QC is open.
+7. **Human still-strip review is off by default.** Pause only when a shot has `"hero": true` (`approve-hero`) or the user explicitly asks to review the preview stills. Do not force a picker every run.
 
 ## Before spending
 

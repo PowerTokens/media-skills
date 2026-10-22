@@ -1,9 +1,11 @@
 """Offline tests for vision QC/hero gates, character bible, claim lint, caption safe-zone."""
+import io
 import json
 import os
 import shutil
 import sys
 import tempfile
+import threading
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -209,6 +211,10 @@ class VisionHeroGateTests(unittest.TestCase):
                     pipeline.ensure_keyframe_qc_and_hero(spec, s, "cred", state, wd, opts)
             self.assertEqual(ctx.exception.kind, "VISION_QC")
             self.assertGreaterEqual(calls["n"], 2)
+            failed = state["shots"][s["id"]]
+            self.assertEqual(failed["qc"], "fail")
+            self.assertIn("hybrid part", failed["qc_failures"])
+            self.assertNotIn("task_id", failed)
 
     def test_skip_vision_qc_allows_hero_auto(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -227,6 +233,247 @@ class VisionHeroGateTests(unittest.TestCase):
             image, pause = pipeline.ensure_keyframe_qc_and_hero(spec, s, "cred", state, wd, opts)
             self.assertIsNone(pause)
             self.assertEqual(image, str(kf))
+
+
+class KeyframeBatchGateTests(unittest.TestCase):
+    def _run(self, spec, opts=None, parallel=1):
+        approve = pipeline.plan(spec)["video_est_usd"]
+        buf = io.StringIO()
+        with mock.patch.dict(os.environ, {"POWERTOKENS_API_KEY": "sk-test"}), \
+             mock.patch("sys.stdout", buf):
+            rc = pipeline.cmd_run(spec, approve, parallel, opts)
+        payload = json.loads(buf.getvalue())
+        return rc, payload
+
+    def test_blockers_and_report_include_why(self):
+        spec = {
+            "kind": "product-ad",
+            "shots": [
+                {"id": "s01", "keyframe": {"prompt": "a"}},
+                {"id": "s02", "keyframe": {"prompt": "b"}},
+                {"id": "s03", "prompt": "turntable", "image": "product.png"},
+            ],
+        }
+        state = {"shots": {
+            "s01": {"qc": "pass", "vision_qc_pass": True},
+            "s02": {"qc": "fail", "vision_qc_retry": True, "qc_failures": [
+                "hybrid structure", "third-party logo", "logo_policy_ok: no",
+            ]},
+        }}
+        self.assertTrue(pipeline.keyframe_batch_gate_active(spec, {}))
+        self.assertEqual(pipeline.keyframe_batch_blockers(spec, state, {}), ["s02"])
+        msg, passed, report = pipeline.keyframe_batch_gate_message(spec, state, ["s02"])
+        self.assertEqual(passed, ["s01"])
+        self.assertIn("third-party logo", msg)
+        self.assertIn("hybrid structure", msg)
+        self.assertIn("after one keyframe retry", msg)
+        self.assertEqual(report[0]["shot"], "s02")
+        self.assertTrue(report[0]["retried"])
+        self.assertIn("stopped in the keyframe phase", msg)
+        self.assertFalse(pipeline.keyframe_batch_gate_active(spec, {"skip_vision_qc": True}))
+        self.assertEqual(pipeline.keyframe_batch_blockers(spec, state, {"skip_vision_qc": True}), [])
+        other = {"kind": "short-drama", "shots": [{"id": "s01", "keyframe": {"prompt": "a"}}]}
+        self.assertEqual(pipeline.keyframe_batch_blockers(other, {"shots": {}}, {}), [])
+
+    def test_run_stops_in_keyframe_phase_and_skips_sibling_i2v(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            spec = pipeline.load(product_project(tmp))
+            spec["voiceover"] = {}
+            # Failing still first so a cancel-on-VISION_QC bug would skip the sibling.
+            spec["shots"] = [spec["shots"][1], spec["shots"][0], spec["shots"][2]]
+            posts = []
+            gens = []
+            lock = threading.Lock()
+            bad = {
+                "pass": False,
+                "failures": ["hybrid structure", "third-party logo"],
+                "structure_mode_seen": "hybrid",
+                "rubric_answers": {"structure_matches_refs": "no", "logo_policy_ok": "no"},
+            }
+            good = {"pass": True, "failures": [], "structure_mode_seen": "closed", "notes": "ok"}
+
+            def fake_gen(spec_, s_, cred, out):
+                with lock:
+                    gens.append(s_["id"])
+                Path(out).parent.mkdir(parents=True, exist_ok=True)
+                Path(out).write_bytes(b"\x89PNG\r\n\x1a\nkey")
+                return str(Path(out).resolve())
+
+            def fake_qc(bible, keyframe, cred, refs=None, model=None):
+                if "s02" in str(keyframe):
+                    return bad
+                return good
+
+            def fake_request(method, path, payload=None, cred=None, **k):
+                with lock:
+                    posts.append(path)
+                return 200, {"id": "task_%d" % len(posts)}, {}
+
+            with mock.patch.object(pipeline, "gen_keyframe", side_effect=fake_gen), \
+                 mock.patch.object(product_qc, "call_vision_qc", side_effect=fake_qc), \
+                 mock.patch.object(pt, "request", side_effect=fake_request), \
+                 mock.patch.object(pipeline.video, "wait_and_download",
+                                   side_effect=lambda *a, **k: a[3]):
+                rc, payload = self._run(spec, parallel=1)
+            state = pipeline.load_state(spec)
+            self.assertEqual(rc, 4)
+            self.assertEqual(posts, [])
+            self.assertEqual(gens.count("s02"), 2)
+            self.assertEqual(gens.count("s01"), 1)
+            self.assertEqual(state["shots"]["s01"]["qc"], "pass")
+            self.assertNotIn("task_id", state["shots"]["s01"])
+            self.assertEqual(state["shots"]["s02"]["qc"], "fail")
+            self.assertNotIn("task_id", state["shots"]["s02"])
+            self.assertNotIn("task_id", state["shots"].get("s03", {}))
+            report = payload["qc_gate"]["report"]
+            self.assertEqual(payload["qc_gate"]["stopped_in"], "keyframe")
+            self.assertEqual(payload["qc_gate"]["blocked"], ["s02"])
+            self.assertIn("s01", payload["qc_gate"]["passed"])
+            why = " ".join(report[0]["why"])
+            self.assertIn("hybrid structure", why)
+            self.assertIn("third-party logo", why)
+            self.assertIn("logo_policy_ok", why)
+            self.assertTrue(report[0]["retried"])
+            self.assertIn("Not starting any i2v", payload["next_step"])
+            self.assertTrue(payload["keyframe_batch_gate"])
+
+    def test_run_batches_i2v_only_after_every_keyframe_passes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            spec = pipeline.load(product_project(tmp))
+            spec["voiceover"] = {}
+            order = []
+            lock = threading.Lock()
+
+            def fake_gen(spec_, s_, cred, out):
+                Path(out).parent.mkdir(parents=True, exist_ok=True)
+                Path(out).write_bytes(b"\x89PNG\r\n\x1a\nkey")
+                return str(Path(out).resolve())
+
+            def fake_qc(bible, keyframe, cred, refs=None, model=None):
+                with lock:
+                    order.append("qc:%s" % Path(str(keyframe)).stem)
+                return {"pass": True, "failures": [], "notes": "ok"}
+
+            def fake_request(method, path, payload=None, cred=None, **k):
+                with lock:
+                    order.append("video")
+                return 200, {"id": "task_%d" % order.count("video")}, {}
+
+            with mock.patch.object(pipeline, "gen_keyframe", side_effect=fake_gen), \
+                 mock.patch.object(product_qc, "call_vision_qc", side_effect=fake_qc), \
+                 mock.patch.object(pt, "request", side_effect=fake_request), \
+                 mock.patch.object(pipeline.video, "wait_and_download",
+                                   side_effect=lambda *a, **k: a[3]):
+                rc, payload = self._run(spec, parallel=2)
+            self.assertEqual(rc, 0, payload)
+            first_video = order.index("video")
+            before = order[:first_video]
+            self.assertIn("qc:s01", before)
+            self.assertIn("qc:s02", before)
+            self.assertEqual(order.count("video"), 3)
+            state = pipeline.load_state(spec)
+            for sid in ("s01", "s02", "s03"):
+                self.assertEqual(state["shots"][sid]["status"], "done")
+                self.assertTrue(state["shots"][sid].get("task_id"))
+            self.assertEqual(state["shots"]["s01"]["qc"], "pass")
+            self.assertEqual(state["shots"]["s02"]["qc"], "pass")
+
+    def test_hero_pauses_only_that_shot_after_qc_gate_opens(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            spec = pipeline.load(product_project(tmp))
+            spec["voiceover"] = {}
+            spec["shots"] = spec["shots"][:2]
+            spec["shots"][0]["hero"] = True
+            posts = []
+
+            def fake_gen(spec_, s_, cred, out):
+                Path(out).parent.mkdir(parents=True, exist_ok=True)
+                Path(out).write_bytes(b"\x89PNG\r\n\x1a\nkey")
+                return str(Path(out).resolve())
+
+            def fake_request(method, path, payload=None, cred=None, **k):
+                posts.append(payload.get("model"))
+                return 200, {"id": "task_%d" % len(posts)}, {}
+
+            with mock.patch.object(pipeline, "gen_keyframe", side_effect=fake_gen), \
+                 mock.patch.object(product_qc, "call_vision_qc",
+                                   return_value={"pass": True, "failures": []}), \
+                 mock.patch.object(pt, "request", side_effect=fake_request), \
+                 mock.patch.object(pipeline.video, "wait_and_download",
+                                   side_effect=lambda *a, **k: a[3]):
+                rc, payload = self._run(spec, parallel=2)
+            state = pipeline.load_state(spec)
+            self.assertEqual(rc, 5, payload)
+            self.assertEqual(payload["hero_pending"], ["s01"])
+            self.assertNotIn("task_id", state["shots"]["s01"])
+            self.assertEqual(state["shots"]["s01"]["qc"], "pass")
+            self.assertTrue(state["shots"]["s02"].get("task_id"))
+            self.assertEqual(len(posts), 1)
+
+    def test_vision_api_down_blocks_every_i2v(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            spec = pipeline.load(product_project(tmp))
+            spec["voiceover"] = {}
+            spec["shots"] = [spec["shots"][1], spec["shots"][0]]
+            posts = []
+
+            def fake_gen(spec_, s_, cred, out):
+                Path(out).parent.mkdir(parents=True, exist_ok=True)
+                Path(out).write_bytes(b"\x89PNG\r\n\x1a\nkey")
+                return str(Path(out).resolve())
+
+            def fake_qc(bible, keyframe, cred, refs=None, model=None):
+                if "s02" in str(keyframe):
+                    raise pt.PTError("connection reset", "NETWORK", 4)
+                return {"pass": True, "failures": []}
+
+            def fake_request(method, path, payload=None, cred=None, **k):
+                posts.append(path)
+                return 200, {"id": "task"}, {}
+
+            with mock.patch.object(pipeline, "gen_keyframe", side_effect=fake_gen), \
+                 mock.patch.object(product_qc, "call_vision_qc", side_effect=fake_qc), \
+                 mock.patch.object(pt, "request", side_effect=fake_request), \
+                 mock.patch.object(pipeline.video, "wait_and_download",
+                                   side_effect=lambda *a, **k: a[3]):
+                rc, payload = self._run(spec, parallel=1)
+            state = pipeline.load_state(spec)
+            self.assertEqual(rc, 4, payload)
+            self.assertEqual(posts, [])
+            self.assertEqual(state["shots"]["s01"]["qc"], "pass")
+            self.assertNotIn("task_id", state["shots"]["s01"])
+            self.assertEqual(state["shots"]["s02"]["qc"], "fail")
+            why = " ".join(payload["qc_gate"]["report"][0]["why"])
+            self.assertIn("vision QC unavailable", why)
+            self.assertIn("--skip-vision-qc", why)
+            self.assertFalse(payload["qc_gate"]["report"][0]["retried"])
+
+    def test_skip_vision_qc_allows_video_without_batch_gate(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            spec = pipeline.load(product_project(tmp))
+            spec["voiceover"] = {}
+            spec["shots"] = spec["shots"][:2]
+            posts = []
+
+            def fake_gen(spec_, s_, cred, out):
+                Path(out).parent.mkdir(parents=True, exist_ok=True)
+                Path(out).write_bytes(b"\x89PNG\r\n\x1a\nkey")
+                return str(Path(out).resolve())
+
+            def fake_request(method, path, payload=None, cred=None, **k):
+                posts.append(path)
+                return 200, {"id": "task_%d" % len(posts)}, {}
+
+            with mock.patch.object(pipeline, "gen_keyframe", side_effect=fake_gen), \
+                 mock.patch.object(product_qc, "call_vision_qc",
+                                   side_effect=AssertionError("QC should be skipped")), \
+                 mock.patch.object(pt, "request", side_effect=fake_request), \
+                 mock.patch.object(pipeline.video, "wait_and_download",
+                                   side_effect=lambda *a, **k: a[3]):
+                rc, payload = self._run(spec, opts={"skip_vision_qc": True}, parallel=2)
+            self.assertEqual(rc, 0, payload)
+            self.assertEqual(len(posts), 2)
+            self.assertFalse(payload["keyframe_batch_gate"])
 
 
 class CaptionSafeZoneTests(unittest.TestCase):

@@ -4,7 +4,7 @@ description: Turn a JSON shot list into a finished video with PowerTokens — Se
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.3.2"
+  version: "0.3.3"
 ---
 
 # PowerTokens shot-list pipeline
@@ -66,7 +66,7 @@ Before sharing the final path:
 
 If the shot list is a product ad, set `"kind": "product-ad"` and `"product_bible": "<file>.json"` (category → subtype → parts BOM). `validate` / `plan` / `run` refuse without a valid bible. When a bible is present, the pipeline **auto-appends** PRODUCT LOCK constraints to every shot and Seedream keyframe prompt, and merges existing bible refs into keyframe refs only (not Wan/Kling i2v).
 
-**Vision QC + hero gate (in `run`):** after each Seedream keyframe, vision chat QC runs by default for product-ad (one retry on fail; still fail → no i2v). Unavailable vision API → fail-closed unless `--skip-vision-qc`. Shots with `"hero": true` pause after QC; approve with `pipeline.py approve-hero shots.json <id>` or pass `--auto-approve-hero`.
+**Vision QC + keyframe batch gate (in `run`, default on for product-ad):** Seedream every keyframe and run machine vision QC **before any i2v**. A fail regenerates that still only (one retry). If it still fails, `run` stops in the keyframe phase and reports which shots and why (structure, third-party logo, hybrid part, …). Failed stills are not sent to video, and siblings that already passed do not start video. When every required keyframe is `qc: pass`, i2v is submitted as one `--parallel` batch. Vision API down → fail-closed unless `--skip-vision-qc` (that flag also turns the batch gate off). Human review of the full still strip is off by default. Shots with `"hero": true` still pause after QC; approve with `pipeline.py approve-hero shots.json <id>` or pass `--auto-approve-hero`. Show the preview stills first only when the user asks.
 
 ## Character bible
 

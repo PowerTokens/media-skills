@@ -24,7 +24,7 @@ Notes from the docs:
   `omni_reference_task_type` = auto/reference/edit/extend. **Do not pass `ratio` with first_frame /
   first-last-frame** (HTTP 400 TaskTypeConstraint); output aspect follows the first frame — keyframe
   at target ratio. Source: https://docs.powertokens.ai/en/zmodelVideo/byteplus/dreamina-seedance-2-5-multimodal-reference-to-video
-- Seedance 2.0 Mini: 4–15 s, no 1080p; cheapest Seedance promo (~$0.031/s). Same family API path as Fast.
+- Seedance 2.0 Mini: pack default and the cheapest list price in this repo (~$0.031/s at both 480p and 720p). 4–15 s, max 720p (no 1080p). Same family API path as Fast.
 - Seedance 2.0 Fast: 4–15 s, no 1080p; promo ~$0.061/s. Source: https://docs.powertokens.ai/en/zmodelVideo/byteplus/dreamina-seedance-2-0-fast-text-to-video
 - Kling v3: prompt and negative_prompt max 2,500 characters; native multi-shot (`multi_shot`,
   up to 6 shots, 512 chars each, durations must sum to total) exists in the API but is not wired in
@@ -33,7 +33,7 @@ Notes from the docs:
 - Unknown / unverified here: max reference images per Seedance/Wan request, queue times, per-account
   model availability, prices for non-default inputs. Say "unknown" rather than guessing.
 
-Estimated cost = list USD/s × seconds. Example: Wan 3.0 720p 5 s ≈ $0.50.
+Estimated cost = list USD/s × seconds. Example: Seedance Mini 720p 5 s ≈ $0.16. Wan 3.0 720p 5 s ≈ $0.50.
 
 ## Live check (2026-10-20, authenticated GET /v1/models, test account)
 The previously shipped model ids above are listed (Mini may appear once the account exposes it). Real test generations succeeded for `wan3.0-video` (480p, 2 s,

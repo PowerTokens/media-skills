@@ -5,7 +5,7 @@ Examples:
   python3 video.py generate -p "a red fox running through snow, cinematic" -d 5 -r 720p --ratio 16:9
   python3 video.py generate -p "the bottle slowly rotates" --image ./product.png --ratio 9:16
   python3 video.py generate ... --dry-run          # print the request, spend nothing
-  python3 video.py resume TASK_ID --model wan3.0-video   # re-poll / download without paying again
+  python3 video.py resume TASK_ID --model dreamina-seedance-2-0-mini-260615   # re-poll / download without paying again
   python3 video.py models                           # model table with limits and list prices
 """
 import argparse

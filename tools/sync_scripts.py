@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 """Copy tools/shared/*.py (and shared examples) into each skill so every skill folder is
 self-contained (Codex $skill-installer / manual copy install one folder at a time).
-Run after editing tools/shared or tools/examples. `--check` exits 1 if copies are stale (CI).
-
-Skill-local patches are applied after the shared file is read and are part of `--check`.
-Other skills keep the shared Wan 3.0 video default.
-"""
+Run after editing tools/shared or tools/examples. `--check` exits 1 if copies are stale (CI)."""
+import filecmp
+import shutil
 import sys
 from pathlib import Path
 
@@ -33,42 +31,16 @@ NEEDS = {
     "powertokens-product-qc": (AUTH + ["image.py", "video.py", "speech.py", "pipeline.py"] + QC,
                                ["product-ad.json", "product-bible.thermos.json", "product-bible.sneaker.json", "product-bible.bag.json"]),
 }
-# Product-ad drafts default to Seedance 2.0 Mini when a shot omits `model`.
-# The shared video.py stays on Wan so video / pipeline / UGC / drama skills do not change.
-PATCHES = {
-    "powertokens-product-ad": {
-        "scripts/video.py": [
-            (
-                'DEFAULT_MODEL = "wan3.0-video"',
-                'DEFAULT_MODEL = "dreamina-seedance-2-0-mini-260615"',
-            ),
-        ],
-    },
-}
-
-def transform(skill, sub, name, data):
-    rel = "%s/%s" % (sub, name)
-    for old, new in PATCHES.get(skill, {}).get(rel, []):
-        raw_old, raw_new = old.encode(), new.encode()
-        found = data.count(raw_old)
-        if found != 1:
-            raise SystemExit("patch anchor for %s %s matched %d times" % (skill, rel, found))
-        data = data.replace(raw_old, raw_new, 1)
-    return data
-
-
 check = "--check" in sys.argv
 stale = []
 for skill, (scripts, examples) in NEEDS.items():
     for src_dir, names, sub in ((SHARED, scripts, "scripts"), (EXAMPLES, examples, "examples")):
         for name in names:
             src, dst = src_dir / name, SKILLS / skill / sub / name
-            expected = transform(skill, sub, name, src.read_bytes())
-            current = dst.read_bytes() if dst.exists() else b""
-            if current != expected:
+            if not dst.exists() or not filecmp.cmp(src, dst, shallow=False):
                 stale.append(str(dst.relative_to(ROOT)))
                 if not check:
                     dst.parent.mkdir(parents=True, exist_ok=True)
-                    dst.write_bytes(expected)
+                    shutil.copy2(src, dst)
 print(("stale: " if check else "synced: ") + (", ".join(stale) or "nothing"))
 sys.exit(1 if check and stale else 0)

@@ -4,7 +4,7 @@ description: Make UGC-style and talking-head ads — selfie-style creator testim
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.2.1"
+  version: "0.2.2"
 ---
 
 # UGC / talking-head ad
@@ -19,7 +19,7 @@ References: `references/workflow.md` (formats, scripts, two production routes),
 4. **Persona** — make a character sheet with Seedream (neutral face + half body) and reuse it as `ref_image` in every shot. The persona must be fictional; do not imitate real people or claim it is a real customer.
 5. **Choose route:**
    - *Native speech:* `dreamina-seedance-2-5-260628` with lines in double quotes, `audio: true`. Best feel; lip-sync quality is not verified here — review each take.
-   - *VO over b-roll:* silent POV/hands/product shots (Wan) + MiniMax voiceover. Cheaper, more controllable.
+   - *VO over b-roll:* silent POV/hands/product shots on `seedance-mini` (cheapest, 4–15 s, max 720p, ~$0.031/s) + MiniMax voiceover. Use Wan when you need 1080p or a length outside 4–15 s.
 6. Shot list → `validate` → `plan` → approval → `run` → `assemble` with captions (UGC lives on captions).
 7. Offer 2–3 hook variants (re-generate only the hook shot).
 

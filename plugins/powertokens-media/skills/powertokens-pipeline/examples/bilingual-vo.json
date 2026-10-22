@@ -1,6 +1,6 @@
 {
   "project": "thermos-ad-zh",
-  "defaults": {"model": "wan3.0-video", "resolution": "720p", "ratio": "9:16", "duration": 4, "audio": false},
+  "defaults": {"model": "seedance-mini", "resolution": "720p", "ratio": "9:16", "duration": 4, "audio": false},
   "shots": [
     {"id": "s01", "image": "product.png", "prompt": "Slow push-in on the thermos, steam rises from the open lid.", "caption": "早上六点，依然滚烫"},
     {"id": "s02", "image": "product.png", "prompt": "The thermos rotates slowly, soft light sweep, label unchanged.", "caption": "12 小时保温"}

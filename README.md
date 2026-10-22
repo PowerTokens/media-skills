@@ -151,9 +151,9 @@ If both an env key and a saved token exist, **`POWERTOKENS_API_KEY` wins**. Brow
 
 | Type | Model id | Notes |
 |---|---|---|
-| Video | `wan3.0-video` (default) | 2–30 s, 480p–1080p, native audio |
+| Video | `dreamina-seedance-2-0-mini-260615` (default, `seedance-mini`) | Cheapest; 4–15 s, max 720p, ~$0.031/s at 480p and 720p |
+| Video | `wan3.0-video` | 2–30 s, 480p–1080p, native audio |
 | Video | `wan3.0-video-prime` | Same as Wan 3.0, faster |
-| Video | `dreamina-seedance-2-0-mini-260615` | **Seedance 2.0 Mini** — agent-friendly cost; promo ~$0.031/s |
 | Video | `dreamina-seedance-2-0-fast-260128` | Seedance 2.0 Fast; promo ~$0.061/s |
 | Video | `dreamina-seedance-2-5-260628` | **Seedance 2.5** — longer / higher-end clips |
 | Video | `kling-v3` | Kling v3, 3–15 s, up to 4K |

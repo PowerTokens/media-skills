@@ -151,9 +151,9 @@ export POWERTOKENS_API_KEY="your-key"
 
 | 类型 | 模型 id | 说明 |
 |---|---|---|
-| 视频 | `wan3.0-video`（默认） | 2–30 秒，480p–1080p，原生音频 |
+| 视频 | `dreamina-seedance-2-0-mini-260615`（默认，`seedance-mini`） | 最便宜；4–15 秒，最高 720p，480p 与 720p 均约 $0.031/秒 |
+| 视频 | `wan3.0-video` | 2–30 秒，480p–1080p，原生音频 |
 | 视频 | `wan3.0-video-prime` | 同 Wan 3.0，更快 |
-| 视频 | `dreamina-seedance-2-0-mini-260615` | **Seedance 2.0 Mini** — 适合 Agent 高频试错；促销约 $0.031/秒 |
 | 视频 | `dreamina-seedance-2-0-fast-260128` | Seedance 2.0 Fast；促销约 $0.061/秒 |
 | 视频 | `dreamina-seedance-2-5-260628` | **Seedance 2.5** — 更长 / 更高规格 |
 | 视频 | `kling-v3` | 可灵 v3，3–15 秒，最高 4K |

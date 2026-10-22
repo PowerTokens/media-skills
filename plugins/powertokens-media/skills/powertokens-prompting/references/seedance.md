@@ -9,7 +9,7 @@ Patterns:
   recommend double quotes for spoken lines. Generated audio is mono.
 - References: "Use image 1 as the character, image 2 as the product." First frame: "First frame is
   image 1". Last frame: "final frame frozen on image 2".
-- Use Seedance 2.0 Fast for drafts (≤ 720p), switch to 2.5 for finals or > 15 s / 1080p.
+- Drafts default to Seedance 2.0 Mini (`seedance-mini`): 4–15 s, max 720p, ~$0.031/s at 480p and 720p. Use Fast when you want that look and can spend more. Switch to 2.5 for finals, clips longer than 15 s, or 1080p.
 
 Pitfalls:
 - **First-frame / first-last-frame i2v:** do **not** send `ratio`. The API returns HTTP 400

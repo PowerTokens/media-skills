@@ -217,19 +217,25 @@ class RepoStructureTests(unittest.TestCase):
         r = subprocess.run([sys.executable, str(ROOT / "tools" / "sync_scripts.py"), "--check"])
         self.assertEqual(r.returncode, 0)
 
-    def test_product_ad_draft_default_is_seedance_mini(self):
-        text = (SKILLS / "powertokens-product-ad" / "scripts" / "video.py").read_text(encoding="utf-8")
-        self.assertIn('DEFAULT_MODEL = "dreamina-seedance-2-0-mini-260615"', text)
-        wan_skills = ("powertokens-video", "powertokens-pipeline", "powertokens-ugc-ad",
-                      "powertokens-short-drama", "powertokens-bilingual-voiceover")
-        for name in wan_skills:
-            other = (SKILLS / name / "scripts" / "video.py").read_text(encoding="utf-8")
-            self.assertIn('DEFAULT_MODEL = "wan3.0-video"', other, name)
+    def test_video_default_is_seedance_mini(self):
+        needle = 'DEFAULT_MODEL = "dreamina-seedance-2-0-mini-260615"'
+        shared = (ROOT / "tools" / "shared" / "video.py").read_text(encoding="utf-8")
+        self.assertIn(needle, shared)
+        copies = list(SKILLS.glob("*/scripts/video.py"))
+        self.assertGreaterEqual(len(copies), 8)
+        for path in copies:
+            self.assertIn(needle, path.read_text(encoding="utf-8"), str(path))
         example = json.loads((ROOT / "tools" / "examples" / "product-ad.json").read_text(encoding="utf-8"))
         self.assertEqual(example["defaults"]["model"], "seedance-mini")
+        self.assertGreaterEqual(example["defaults"]["duration"], 4)
+        self.assertNotEqual(example["defaults"]["resolution"], "1080p")
         hero = example["shots"][-1]
         self.assertEqual(hero["model"], "kling")
         self.assertEqual(hero["resolution"], "1080p")
+        bilingual = json.loads((ROOT / "tools" / "examples" / "bilingual-vo.json").read_text(encoding="utf-8"))
+        self.assertEqual(bilingual["defaults"]["model"], "seedance-mini")
+        self.assertGreaterEqual(bilingual["defaults"]["duration"], 4)
+        self.assertNotEqual(bilingual["defaults"]["resolution"], "1080p")
 
 
 if __name__ == "__main__":

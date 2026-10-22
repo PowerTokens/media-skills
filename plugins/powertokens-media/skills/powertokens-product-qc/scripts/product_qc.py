@@ -16,6 +16,7 @@ Agent bible workflow (required order):
   2. subtype（具体分型）
   3. immutable.parts BOM（组成拆解）
   4. then forbid / colors / logos / proportions / refs
+     Always include DEFAULT_THIRD_PARTY_FORBID in forbid[] (third-party brand props).
 """
 import argparse
 import json
@@ -43,6 +44,56 @@ RUBRIC_QUESTIONS = [
     "logo_policy_ok",
     "proportions_silhouette_ok",
 ]
+
+# Operational only — no legal-advice wording. Copy this into immutable.forbid when drafting a bible.
+DEFAULT_THIRD_PARTY_FORBID = (
+    "no third-party logos, wordmarks, or brand-identifiable devices "
+    "(MacBook, iPhone, Apple logo, Nike swoosh, Starbucks cup mark, Amazon smile, "
+    "Google/Microsoft hardware logos) unless the advertised SKU is that brand "
+    "or the user explicitly approved it"
+)
+
+# Always appended to Seedream / i2v prompts (pipeline injects constraints_block).
+THIRD_PARTY_PROP_LOCK = (
+    "Third-party brand props: no third-party logos, wordmarks, packaging, or "
+    "brand-identifiable devices (Apple MacBook / iPhone / logo, Nike swoosh, "
+    "Starbucks cup mark, Amazon smile, Google/Microsoft hardware logos) unless "
+    "the advertised SKU is that brand or the user explicitly approved showing it. "
+    "Generic unbranded props only (plain silver laptop with no logo or chin text, "
+    "blank phone bezel, plain mug)."
+)
+
+LOGO_POLICY_ASK = (
+    "logo policy ok? Answer no if logos or wordmarks violate immutable.logos "
+    "(invented marks, or a required own mark missing), or if the frame shows a "
+    "recognizable third-party trademark, wordmark, packaging, or brand-identifiable "
+    "device (Apple MacBook / iPhone / logo, Nike swoosh, Starbucks cup mark, "
+    "Amazon smile, Google/Microsoft hardware logos) unless that brand is the "
+    "advertised SKU or explicitly allowed. Generic unbranded props are yes "
+    "(plain silver laptop with no logo or chin text, blank phone bezel, plain mug)."
+)
+
+
+def _is_third_party_forbid(text):
+    low = str(text).lower()
+    return "third-party" in low and (
+        "logo" in low or "wordmark" in low or "brand-identifiable" in low
+    )
+
+
+def _rubric_ask(qid):
+    if qid == "logo_policy_ok":
+        return LOGO_POLICY_ASK
+    return qid.replace("_", " ") + "?"
+
+
+def _rubric_is_no(value):
+    if isinstance(value, bool):
+        return value is False
+    if value is None:
+        return False
+    token = str(value).strip().lower().rstrip(".")
+    return token in ("no", "fail", "false")
 
 
 def _as_part(item, default_role="part"):
@@ -207,7 +258,8 @@ def constraints_block(bible):
         )
         for p in parts
     )
-    forbid = "; ".join(imm["forbid"])
+    # State the third-party prop lock once (canonical sentence), even when forbid[] already has it.
+    forbid_items = [f for f in imm["forbid"] if not _is_third_party_forbid(f)]
     logos = imm.get("logos")
     logo_line = "Logos: %s." % (logos if logos not in (None, "none") else "none — do not invent logos or wordmarks")
     cat = bible.get("category") or "product"
@@ -220,10 +272,16 @@ def constraints_block(bible):
         "Colors/finish: %s." % imm["colors"],
         "Proportions: %s." % imm["proportions"],
         logo_line,
-        "Forbidden: %s." % forbid,
-        "Keep the product identical to the reference photos; do not invent, omit, or hybridize parts listed in structure; do not redesign critical geometry.",
-        "Part-detail refs (kind=part_detail or shows a single BOM part): use them ONLY to correct that named part; keep body height, silhouette, proportions, colors/finish, and scene framing identical to the hero product ref — unify the part onto the original product; do not shorten, stubby-fy, or restyle the whole SKU from a part-only crop.",
     ]
+    if forbid_items:
+        lines.append("Forbidden: %s." % "; ".join(forbid_items))
+    lines.append(THIRD_PARTY_PROP_LOCK)
+    lines.append(
+        "Keep the product identical to the reference photos; do not invent, omit, or hybridize parts listed in structure; do not redesign critical geometry."
+    )
+    lines.append(
+        "Part-detail refs (kind=part_detail or shows a single BOM part): use them ONLY to correct that named part; keep body height, silhouette, proportions, colors/finish, and scene framing identical to the hero product ref — unify the part onto the original product; do not shorten, stubby-fy, or restyle the whole SKU from a part-only crop."
+    )
     mmr = bible.get("must_match_refs")
     if mmr:
         lines.append("Must match refs exactly for: %s." % ", ".join(str(x) for x in mmr))
@@ -249,7 +307,7 @@ def vision_messages(bible, keyframe, refs=None, model=None):
     bible = normalize_bible(bible)
     refs = refs or [r["path"] for r in bible.get("refs", [])]
     imm = bible["immutable"]
-    rubric = [{"id": q, "ask": q.replace("_", " ") + "?"} for q in RUBRIC_QUESTIONS]
+    rubric = [{"id": q, "ask": _rubric_ask(q)} for q in RUBRIC_QUESTIONS]
     system = (
         "You are a strict product-consistency inspector for ads. "
         "Compare the KEYFRAME image to the PRODUCT BIBLE and REFERENCE images. "
@@ -278,6 +336,17 @@ def vision_messages(bible, keyframe, refs=None, model=None):
             "Fail if structure is a hybrid not listed in immutable.parts (structure modes).",
             "Fail if any forbid[] rule is violated.",
             "Fail if critical parts are invented, omitted, or redesigned vs refs.",
+            (
+                "Fail logo_policy_ok — set rubric_answers.logo_policy_ok to no and pass to false — "
+                "if logos or wordmarks violate immutable.logos, or if the frame shows a recognizable "
+                "third-party trademark, wordmark, packaging, or brand-identifiable device "
+                "(Apple MacBook / iPhone / logo, Nike swoosh, Starbucks cup mark, Amazon smile, "
+                "Google or Microsoft hardware logos), unless that brand is the advertised SKU "
+                "or the user explicitly approved showing it. Generic unbranded props pass "
+                "(plain silver laptop with no logo or chin text, blank phone bezel, plain mug). "
+                "Default forbid line: %s."
+                % DEFAULT_THIRD_PARTY_FORBID
+            ),
             "If unsure, set pass=false and put 'unclear' in failures.",
         ],
     }
@@ -332,6 +401,13 @@ def parse_verdict(raw):
     if passed and failures:
         # Prefer explicit failures: treat as fail.
         passed = False
+    answers = data.get("rubric_answers") or {}
+    if not isinstance(answers, dict):
+        answers = {}
+    if _rubric_is_no(answers.get("logo_policy_ok")):
+        passed = False
+        if not any("logo_policy" in str(f).lower() for f in failures):
+            failures.append("logo_policy_ok")
     # Prefer structure_mode_seen; accept legacy lid_mode_seen.
     mode_seen = data.get("structure_mode_seen")
     if mode_seen is None:

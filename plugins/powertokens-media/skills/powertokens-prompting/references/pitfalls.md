@@ -5,6 +5,7 @@
 | Face/product changes between shots | description drift | identical description text every shot, reference images, Seedream keyframes |
 | Actions blend or morph | too many actions | one action per shot or timeline beats |
 | Product label garbled | model redrew the label | i2v from real packshot, "label unchanged", shorter move, close-up less |
+| Third-party brand in a product ad (MacBook lid, iPhone logo, swoosh, cup mark, …) | model used a famous product as a prop | forbid it in the product bible and prompt; fail `logo_policy_ok`; regenerate with a generic unbranded prop (plain laptop, blank phone, plain mug) unless the SKU is that brand or the user approved it |
 | Hands/fingers wrong | complex hand action | simpler grip, hands partly out of frame, cut away sooner |
 | Image cropped in i2v | ratio mismatch | generate keyframe at target ratio |
 | Seedance i2v HTTP 400 `TaskTypeConstraint` on `ratio` | `ratio` sent with first_frame | omit `ratio` (pipeline/video.py does this); keyframe at target aspect |

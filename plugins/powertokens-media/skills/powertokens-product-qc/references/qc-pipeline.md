@@ -11,6 +11,8 @@ See also the full doc at repo root: `docs/product-consistency-qc.md`.
 
 Rubric: `structure_matches_refs`, `no_hybrid_or_invented_parts`, `colors_finish_ok`, `logo_policy_ok`, `proportions_silhouette_ok`. Verdict field: `structure_mode_seen`.
 
+**`logo_policy_ok`:** fail if the frame shows a third-party logo, wordmark, packaging, or brand-identifiable device (MacBook, iPhone, Apple logo, Nike swoosh, Starbucks cup mark, Amazon smile, Google/Microsoft hardware logos) unless the advertised SKU is that brand or the user explicitly approved it. Also fail when marks violate `immutable.logos`. Generic unbranded props pass (plain silver laptop with no logo or chin text, blank phone bezel, plain mug). Do not ship a fail — regenerate or ask. When drafting `forbid`, always include: `no third-party logos, wordmarks, or brand-identifiable devices (MacBook, iPhone, etc.) unless approved`.
+
 Default vision chat candidate: `MiniMax-M3`. Alts: `glm-5.2`, `glm-5.1`, `glm-5-turbo`. Confirm live ids and multimodal support before spending.
 
 **Part-detail refs:** find the separate part image when needed, then **unify onto the hero product** — body/proportions/scene stay locked; only the named BOM part changes. Never regenerate from a part-only crop alone.

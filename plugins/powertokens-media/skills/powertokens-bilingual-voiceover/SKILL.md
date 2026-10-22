@@ -4,7 +4,7 @@ description: Create English and Chinese (Mandarin/Cantonese) voiceovers and dubb
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.2.2"
+  version: "0.2.3"
 ---
 
 # Bilingual EN/ZH voiceover
@@ -15,9 +15,10 @@ Reference: `references/adaptation.md` (timing, voice pairs, caption rules). Exam
 1. Start from the finished shot list (or a script). Keep visuals identical; only VO and captions change.
 2. **Adapt, don't translate literally** — match each line's duration: EN ≈ 2.5 words/s, ZH ≈ 4–5 characters/s. Show EN and ZH side by side for approval.
 3. **Pick a voice pair** (see reference). Test one line per voice first (`speech.py`, cheap) before the whole script.
-4. Make a language copy of the shot list: `<project>-zh.json` with `project` renamed, `voiceover.lines` and each shot's `caption` in Chinese. Copy the finished clips and the shots part of `state.json` into the new workdir so no video is regenerated.
+4. Make a language copy of the shot list: `<project>-zh.json` with `project` renamed, `voiceover.lines` and each shot's `caption` in Chinese. Copy the finished clips and the shots part of `state.json` into the new workdir so no video is regenerated. **One `voiceover.lines[]` entry per spoken line** — the pipeline makes one MiniMax call per line. Do not paste the whole script into one speech call.
 5. `pipeline.py run --approve-estimate 0` (video estimate is 0 when all clips exist; only VO is generated — tell the user VO is billed per character) → `assemble` with captions burned in. Pass `--no-captions` only when the user explicitly asked for softsubs only.
-6. Deliver both MP4s with captions burned in (`captions_burned: true` on each). Each `captions.srt` is a sidecar, not a substitute for burn-in.
+6. If a line returns `CONTENT_POLICY`, do not drop the other language or the other lines. The pipeline rewrites that segment once and retries once. If it is still blocked, ask with the rejected line and rewrite options; keep going on the rest. Assemble EN with `--allow-partial-vo` (silence or BGM for the missing line) or deliver **ZH-only** only after the user says yes. A blocked EN line is not a reason to skip a finished ZH cut they already approved. A partial or ZH-only cut still needs captions burned in (`captions_burned: true`) unless they explicitly asked for softsubs only.
+7. Deliver both MP4s with captions burned in (`captions_burned: true` on each), or the cut they accepted. Each `captions.srt` is a sidecar, not a substitute for burn-in.
 
 ## Before spending
 
@@ -27,7 +28,8 @@ Reference: `references/adaptation.md` (timing, voice pairs, caption rules). Exam
   - No plan yet: ask whether to proceed with **the EN/ZH line pair for approval, then `plan`**. That yes only starts the unpaid step. Do not spend until they later approve the estimate.
   - Ask in the user's language. If they already said yes to this question for this plan, do not ask again. Canonical wording: repo `docs/auth-after-verify.md`.
 - Always `pipeline.py validate` → `plan` → show the estimate table → wait for an explicit yes → `run --approve-estimate <total>`.
-- `INSUFFICIENT_CREDITS` → stop and tell the user. Timeouts → run the same command again (resumes, no double charge).
+- **Before EN voiceover spend:** lines are original product claims (from the approved claim sheet when this is an ad), not song lyrics, brand slogans copied verbatim, celebrity endorsements, or long copyrighted quotes. Say that when you show the EN script. Same rule for ZH: adapt the claim, do not paste lyrics or a slogan to make the line "catchier".
+- `INSUFFICIENT_CREDITS` → stop and tell the user. Timeouts → run the same command again (resumes, no double charge). `CONTENT_POLICY` on one segment does not abort the job — see the workflow step above and `references/adaptation.md`.
 
 Captions in Chinese need a CJK font on the machine for burning (e.g. Noto Sans CJK); set `assembly.caption_style` FontName accordingly. If that font is missing, say so and only then use `--no-captions` (SRT only) as a fallback, and say burn-in was skipped. For product-ad, UGC, and short-drama cuts, the normal delivery is still an MP4 with captions burned in.
 

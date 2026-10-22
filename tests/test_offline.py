@@ -17,6 +17,7 @@ os.environ.pop("POWERTOKENS_API_KEY", None)
 sys.path.insert(0, str(ROOT / "tools" / "shared"))
 import pt_common as pt  # noqa: E402
 import pt_login  # noqa: E402
+import speech  # noqa: E402
 import video  # noqa: E402
 
 
@@ -65,6 +66,31 @@ class VideoTests(unittest.TestCase):
         body = {"error": {"code": "insufficient_user_quota", "message": "Insufficient account quota"}}
         self.assertEqual(pt.classify(429, body), "INSUFFICIENT_CREDITS")
 
+    def test_content_policy_classified_and_snippet(self):
+        body = {"error": {"message": "blocked by the audio copyright policy"}}
+        self.assertEqual(pt.classify(400, body), "CONTENT_POLICY")
+        self.assertEqual(pt.classify(400, {"error": {"message": "bad voice id"}}), "BAD_REQUEST")
+        self.assertEqual(pt.classify(403, {"error": {"message": "forbidden"}}), "NOT_ALLOWED")
+        self.assertEqual(pt.classify(200, {"base_resp": {"status_code": 1026, "status_msg": "input new_sensitive"}}),
+                         "CONTENT_POLICY")
+        with self.assertRaises(pt.PTError) as ctx:
+            pt.raise_for(400, body, "Speech line-01", snippet="Just Do It. Twelve hours hot.")
+        self.assertEqual(ctx.exception.kind, "CONTENT_POLICY")
+        self.assertEqual(ctx.exception.details["rejected_text"], "Just Do It. Twelve hours hot.")
+        self.assertIn("rejected_text", str(ctx.exception))
+
+    def test_policy_rewrite_keeps_facts(self):
+        lyric = 'She sang "we will rock you" but this bottle keeps coffee hot for 12 hours.'
+        rewritten = pt.policy_rewrite(lyric)
+        self.assertNotIn("rock you", rewritten)
+        self.assertIn("12 hours", rewritten)
+        celeb = "As Taylor Swift says, twelve hours hot."
+        self.assertNotIn("Taylor", pt.policy_rewrite(celeb))
+        self.assertIn("twelve hours", pt.policy_rewrite(celeb))
+        self.assertIsNone(pt.policy_rewrite("Twelve hours later, still hot."))
+        quoted = '"we will rock you forever now please"'
+        self.assertIsNone(pt.policy_rewrite(quoted))
+
 
 class LiveShapeTests(unittest.TestCase):
     """Response shapes seen on the live API (2026-10-20)."""
@@ -85,6 +111,46 @@ class LiveShapeTests(unittest.TestCase):
             fh.write(b"\xff\xd8\xff\xe0fakejpeg")
         self.assertTrue(pt.to_media_ref(fh.name).startswith("data:image/jpeg;base64,"))
         os.unlink(fh.name)
+
+
+class SpeechPolicyTests(unittest.TestCase):
+    def test_split_lines_keeps_going_after_one_block(self):
+        script = "Shop from the link below.\n\"we will rock you forever now\"\nTwelve hours later, still hot."
+        calls = []
+
+        def fake_request(method, path, payload=None, cred=None, **k):
+            text = (payload or {}).get("input") or ""
+            calls.append(text)
+            if "rock you" in text:
+                raw = json.dumps({"error": {"message": "audio copyright policy"}}).encode()
+                return 400, raw, {}
+            raw = json.dumps({"data": {"audio": "https://cdn.example.com/a.mp3", "status": 2}}).encode()
+            return 200, raw, {}
+
+        def fake_download(url, out, cred=None):
+            Path(out).parent.mkdir(parents=True, exist_ok=True)
+            Path(out).write_bytes(b"mp3")
+            return str(Path(out).resolve())
+
+        buf = io.StringIO()
+        with tempfile.TemporaryDirectory() as tmp, \
+             mock.patch.dict(os.environ, {"POWERTOKENS_API_KEY": "sk-test"}), \
+             mock.patch.object(pt, "request", side_effect=fake_request), \
+             mock.patch.object(pt, "download", side_effect=fake_download), \
+             mock.patch.object(sys, "argv", ["speech.py", "--split-lines", "--segment", "en",
+                                            "-o", str(Path(tmp) / "vo.mp3"), "-t", script]), \
+             mock.patch("sys.stdout", buf):
+            rc = speech.main()
+            self.assertEqual(rc, 7)
+            payload = json.loads(buf.getvalue())
+            self.assertEqual(payload["error_type"], "CONTENT_POLICY")
+            self.assertEqual([s["id"] for s in payload["segments"]], ["en-01", "en-03"])
+            self.assertEqual(payload["voiceover_blocked"][0]["id"], "en-02")
+            self.assertIn("rock you", payload["voiceover_blocked"][0]["rejected_text"])
+            self.assertIn("en-02", payload["voiceover_blocked"][0]["error"])
+            self.assertTrue((Path(tmp) / "vo-en-01.mp3").is_file())
+            self.assertFalse((Path(tmp) / "vo-en-02.mp3").is_file())
+            self.assertGreaterEqual(len(calls), 3)
 
 
 class LoginTests(unittest.TestCase):

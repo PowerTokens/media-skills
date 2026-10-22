@@ -4,7 +4,7 @@ description: Pick the right PowerTokens model (default Seedance 2.0 Mini, plus W
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.2.2"
+  version: "0.2.3"
 ---
 
 # PowerTokens model routing

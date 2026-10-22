@@ -14,4 +14,4 @@ Prompt style words: "handheld iPhone selfie footage", "front camera", "natural b
 Speech in Seedance 2.5: `Ava looks at the camera and says, "Two drops, morning and night."`
 One speaker, one short line per shot; longer lines drift out of sync.
 
-VO route: write VO lines first, then size shots to the lines (≈ 2.5 words/s).
+VO route: write VO lines first, then size shots to the lines (≈ 2.5 words/s). One MiniMax call per line. Lines are original claims, not lyrics, verbatim slogans, celebrity endorsements, or long quotes. A `CONTENT_POLICY` block stays on that line; rewrite once, ask the user, and do not drop the rest of the VO. See `docs/speech-content-policy.md`.

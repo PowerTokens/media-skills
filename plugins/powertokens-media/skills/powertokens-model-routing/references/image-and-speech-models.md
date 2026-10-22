@@ -23,6 +23,9 @@ Max 10,000 characters per request. Docs say non-streaming returns a 302 redirect
 2026-10-20 returned HTTP 200 JSON `{"data": {"audio": "<temporary https URL>"}}`. Scripts accept both.
 Billed per 1K input characters (price not stored here). Voice ids are fixed strings, e.g.
 `English_Trustworthy_Man`, `English_Graceful_Lady`, `Chinese (Mandarin)_News_Anchor`.
+Multi-line voiceover is one request per line, not one request for the whole script. A copyright or
+safety rejection is `error_type: CONTENT_POLICY` (see `docs/speech-content-policy.md`); retry that
+line once after a rewrite, and do not fail the other lines.
 Source: https://docs.powertokens.ai/en/zmodelAudio/minimax/speech-2.8-turbo
 
 Live check 2026-10-20: `seedream-4-5-251128` returned one 1440×2560 image (JPEG bytes from the result

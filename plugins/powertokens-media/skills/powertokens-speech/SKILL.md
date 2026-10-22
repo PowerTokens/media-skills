@@ -4,7 +4,7 @@ description: Turn text into natural speech (text-to-speech, voiceover, narration
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.2.0"
+  version: "0.2.1"
 ---
 
 # PowerTokens speech
@@ -29,15 +29,32 @@ Never ask the user to paste a key into the chat, never write a key into files, n
 Scripts print JSON. On failure read `error_type`:
 `NO_CREDENTIAL`/`AUTH` → credentials step above · `INSUFFICIENT_CREDITS` → tell the user to top up (link in `next_step`), do not retry · `BAD_REQUEST` → fix the arguments · `RATE_LIMIT`/`NETWORK` → wait and retry once.
 
+`CONTENT_POLICY` → MiniMax blocked that segment (audio copyright, content policy, safety, or similar). The JSON includes `rejected_text` when the line is known, plus `segment_id` and `rewrite_attempted` when a rewrite was tried. **Do not abort the rest of the script, and do not send the same text again.**
+
+The script already rewrites a blocked segment once (paraphrase; drop lyrics, celebrity names, trademark slogans, and long quotes; keep approved claim-sheet facts) and retries that segment once. If it is still `CONTENT_POLICY`:
+
+1. Keep every other segment that succeeded. With `--split-lines`, exit code 7 and `voiceover_blocked` name the segment id and the rejected line; `segments` lists the files that were saved.
+2. Ask the user. Show the rejected line, the rewrite already tried, and one or two new options that stay original product claims. Wait for a choice.
+3. Retry only the chosen line (`--segment <id>`). Leave finished files in place.
+4. Assemble only after they accept it. Partial cut: use the VO that exists and silence or their BGM for the missing line. Bilingual, EN blocked: offer a ZH-only cut. Do not pick either without a yes.
+
+Repo note: `docs/speech-content-policy.md`.
+
 ## Generate
 
 ```bash
 python3 scripts/speech.py -t "TEXT" --voice English_Trustworthy_Man -o outputs/voiceover.mp3
+python3 scripts/speech.py --split-lines --segment en -f script.txt --voice English_Trustworthy_Man -o outputs/vo.mp3
+python3 scripts/speech.py -t "ONE LINE" --segment vo02 -o outputs/vo02.mp3
 python3 scripts/speech.py -f script.txt --voice English_Graceful_Lady --speed 1.1 --format wav
 python3 scripts/speech.py --list-voices
 ```
 
-Default model `speech-2.8-turbo` (use `speech-2.8-hd` for higher quality). Max 10,000 characters per call; split longer scripts by paragraph and number the files. Billing is per character. Report the saved path.
+Default model `speech-2.8-turbo` (use `speech-2.8-hd` for higher quality). Max 10,000 characters per call. Billing is per character. Report the saved path.
+
+**Multi-line ads: one TTS call per voiceover line, not one call for the whole script.** Pass `--split-lines` (output `vo-<segment>.mp3`, errors name the segment id and text) or call once per line with `--segment`. A single blocked line must not drop the other lines. The pipeline shot list (`voiceover.lines[]`) does the same, one call per line.
+
+**Before spending on EN voiceover:** lines must be original product claims from the approved claim sheet. Do not speak song lyrics, brand slogans copied verbatim, celebrity endorsements, or long copyrighted quotes. Say that when you show the EN script, before the first speech call.
 
 Timing: ~150 English words ≈ 1 minute. For a 15 s ad aim for 30–40 words.
 

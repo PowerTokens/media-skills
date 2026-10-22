@@ -17,6 +17,8 @@
 - [ ] Captions inside safe area (not under platform UI at bottom/right; prefer ~60% height); style defaults to `tiktok` (A), changeable (`pill` / `caps-punch` / `zh`) if user asks or copy is CJK
 - [ ] Seedance i2v: no `ratio` param (follows first frame); keyframe already at platform ratio
 - [ ] Ratio correct for the platform; duration within platform limits
+- [ ] VO lines are original approved claims (no lyrics, verbatim slogans, celebrity endorsements, or long quotes); one TTS call per line
+- [ ] A `CONTENT_POLICY` line was rewritten once or the user chose a new line; partial assemble only with their yes (`--allow-partial-vo`)
 - [ ] Audio levels: VO clear over ambience / ducked BGM; no clipping
 - [ ] File: H.264 MP4, 1080×1920, 30 fps (assemble default)
 - [ ] Report spend estimate and file paths

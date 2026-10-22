@@ -6,6 +6,7 @@ import base64
 import json
 import mimetypes
 import os
+import re
 import sys
 import time
 import urllib.error
@@ -29,9 +30,10 @@ CREDENTIALS_PATH = CONFIG_DIR / "credentials.json"
 
 
 class PTError(Exception):
-    def __init__(self, message, kind="UNKNOWN", exit_code=4):
+    def __init__(self, message, kind="UNKNOWN", exit_code=4, details=None):
         super().__init__(message)
         self.kind, self.exit_code = kind, exit_code
+        self.details = details or {}
 
 
 def emit(obj):
@@ -44,6 +46,12 @@ def run(main):
         sys.exit(main() or 0)
     except PTError as exc:
         out = {"ok": False, "error_type": exc.kind, "error": str(exc)}
+        for key, val in exc.details.items():
+            if key in out:
+                continue
+            if val is None and key != "rewrite_attempted":
+                continue
+            out[key] = val
         if exc.kind in ("NO_CREDENTIAL", "AUTH"):
             out["next_step"] = ("Run `python3 scripts/pt_login.py login` (browser sign-in) or export "
                                 "POWERTOKENS_API_KEY. New here? Sign up: " + SIGNUP_URL)
@@ -94,6 +102,31 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
 _OPENER = urllib.request.build_opener(_NoRedirect)
 
 
+# MiniMax speech blocks (audio copyright / sensitive input) and similar provider wording.
+# Checked after credits / rate-limit / auth so those stay stable.
+_POLICY_MARKERS = (
+    "copyright",
+    "content policy",
+    "content_policy",
+    "content-policy",
+    "safety",
+    "unsafe",
+    "usage policy",
+    "policy violation",
+    "violates our policy",
+    "moderation",
+    "new_sensitive",
+    "sensitive content",
+    "input sensitive",
+    "audio policy",
+    "版权",
+    "内容政策",
+    "内容安全",
+    "安全策略",
+    "违规",
+)
+
+
 def classify(code, body):
     text = json.dumps(body, ensure_ascii=False).lower() if body else ""
     if code == 402 or any(s in text for s in ("insufficient_user_quota", "insufficient", "quota",
@@ -103,11 +136,50 @@ def classify(code, body):
         return "RATE_LIMIT"
     if code == 401 or "invalid token" in text or "token_invalid" in text or "expired" in text:
         return "AUTH"
+    if any(marker in text for marker in _POLICY_MARKERS):
+        return "CONTENT_POLICY"
     if code == 403:
         return "NOT_ALLOWED"
     if code and 400 <= code < 500:
         return "BAD_REQUEST"
     return "SERVER"
+
+
+def error_message(body):
+    """Best-effort provider message from a JSON error body."""
+    if not isinstance(body, dict):
+        return str(body)[:300]
+    err = body.get("error")
+    if isinstance(err, dict):
+        msg = err.get("message") or err.get("msg")
+        if msg:
+            return str(msg)
+    if isinstance(err, str) and err.strip():
+        return err.strip()
+    base = body.get("base_resp")
+    if isinstance(base, dict) and base.get("status_msg"):
+        return str(base["status_msg"])
+    msg = body.get("message") or body.get("msg")
+    if msg:
+        return str(msg)
+    return json.dumps(body, ensure_ascii=False)[:300]
+
+
+def rejected_snippet_from_body(body):
+    """Return blocked text when the provider echoes it; otherwise None."""
+    if not isinstance(body, dict):
+        return None
+    for key in ("input", "text", "prompt", "content"):
+        val = body.get(key)
+        if isinstance(val, str) and val.strip():
+            return val.strip()[:500]
+    data = body.get("data")
+    if isinstance(data, dict):
+        for key in ("input", "text", "prompt", "content"):
+            val = data.get(key)
+            if isinstance(val, str) and val.strip():
+                return val.strip()[:500]
+    return None
 
 
 def request(method, path_or_url, payload=None, cred=None, timeout=60, raw=False):
@@ -138,12 +210,94 @@ def request(method, path_or_url, payload=None, cred=None, timeout=60, raw=False)
     return code, body if isinstance(body, dict) else {"data": body}, hdrs
 
 
-def raise_for(code, body, what):
-    kind = classify(code, body)
-    msg = body.get("error", {}).get("message") if isinstance(body.get("error"), dict) else None
-    msg = msg or body.get("message") or body.get("msg") or json.dumps(body)[:300]
+def raise_for(code, body, what, snippet=None):
+    kind = classify(code, body if isinstance(body, dict) else {})
+    msg = error_message(body)
+    details = {}
+    if kind == "CONTENT_POLICY":
+        text = (snippet or rejected_snippet_from_body(body) or "").strip()
+        if text:
+            details["rejected_text"] = text[:500]
+            msg = "%s | rejected_text: %s" % (msg, text[:180])
+        details["recovery"] = (
+            "This segment was blocked by the audio content policy. "
+            "Rewrite it once (paraphrase; drop lyrics, celebrity names, trademark slogans, and long quotes; "
+            "keep approved claim-sheet facts) and retry once. If it is still blocked, ask the user with the "
+            "rejected line and rewrite options, and continue the other segments."
+        )
     raise PTError("%s failed (HTTP %s): %s" % (what, code, msg), kind,
-                  3 if kind == "BAD_REQUEST" else 4)
+                  3 if kind in ("BAD_REQUEST", "CONTENT_POLICY") else 4, details)
+
+
+_QUOTED = re.compile(
+    r"[\"“”«»][^\"“”«»\n]{0,500}[\"“”«»]"
+    r"|‘[^’\n]{8,500}’"
+    r"|「[^」]{0,500}」"
+    r"|『[^』]{0,500}』"
+)
+_TM = re.compile(r"[®™©]|\((?:r|tm|c)\)", re.I)
+_ATTR = re.compile(
+    r"(?i)\b(?:as|according to)\s+[A-Z][\w.'’-]+(?:\s+[A-Z][\w.'’-]+){0,3}\s+says\b[:,]?\s*"
+    r"|\b(?:endorsed by|featuring|starring)\s+[A-Z][\w.'’-]+(?:\s+[A-Z][\w.'’-]+){0,3}\b[:,]?\s*"
+)
+_DASH_ATTR = re.compile(r"\s*[—–-]\s*[A-Z][A-Za-z.'’-]+(?:\s+[A-Z][A-Za-z.'’-]+){0,3}\s*$")
+
+
+def policy_rewrite(text):
+    """One conservative rewrite for a CONTENT_POLICY retry.
+
+    Strips quoted lyrics/slogans, trademark marks, and celebrity-style attributions.
+    Keeps the unquoted remainder (numbers and product facts). Returns None when the
+    text would be unchanged or too thin to speak — caller must not spend a retry.
+    """
+    original = " ".join((text or "").split())
+    if not original:
+        return None
+    cleaned = _TM.sub("", original)
+    cleaned = _QUOTED.sub(" ", cleaned)
+    cleaned = _ATTR.sub(" ", cleaned)
+    cleaned = _DASH_ATTR.sub("", cleaned)
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    candidate = _finish_rewrite(cleaned, original) if cleaned else None
+    if candidate:
+        return candidate
+    return _finish_rewrite(_prefer_fact_sentences(original), original)
+
+
+def _finish_rewrite(candidate, original):
+    """Return a speakable rewrite, or None when it is the same line with tidy punctuation."""
+    candidate = " ".join((candidate or "").split()).strip(" .,;:-")
+    original_norm = " ".join((original or "").split()).strip(" .,;:-")
+    if not candidate or len(candidate) < 8 or candidate == original_norm:
+        return None
+    if candidate[-1] not in ".!?":
+        spoken = candidate + "."
+    else:
+        spoken = candidate
+    if spoken.strip(" .,;:-") == original_norm:
+        return None
+    return spoken
+
+
+def _prefer_fact_sentences(text):
+    """Drop lyric-like or long unspecific sentences when a shorter fact remains."""
+    parts = re.split(r"(?<=[.!?])\s+", (text or "").strip())
+    if len(parts) < 2:
+        return " ".join((text or "").split()).strip(" .,;:-")
+    kept = []
+    for part in parts:
+        words = part.split()
+        has_digit = bool(re.search(r"\d", part))
+        lyric_like = (len(words) >= 8 and part.count(",") >= 2 and not has_digit) or bool(_QUOTED.search(part))
+        if lyric_like:
+            continue
+        if len(words) > 30 and not has_digit:
+            continue
+        if part.strip():
+            kept.append(part.strip())
+    if not kept:
+        return ""
+    return " ".join(kept).strip()
 
 
 def download(url, out_path, cred=None):

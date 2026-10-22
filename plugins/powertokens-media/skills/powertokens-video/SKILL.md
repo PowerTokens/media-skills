@@ -4,7 +4,7 @@ description: Generate AI videos (text-to-video and image-to-video) with Seedance
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.2.2"
+  version: "0.2.3"
 ---
 
 # PowerTokens video
@@ -27,7 +27,7 @@ Never ask the user to paste a key into the chat, never write a key into files, n
 ## Errors
 
 Scripts print JSON. On failure read `error_type`:
-`NO_CREDENTIAL`/`AUTH` → credentials step above · `INSUFFICIENT_CREDITS` → tell the user to top up (link in `next_step`), do not retry · `BAD_REQUEST` → fix the arguments · `RATE_LIMIT`/`NETWORK` → wait and retry once.
+`NO_CREDENTIAL`/`AUTH` → credentials step above · `INSUFFICIENT_CREDITS` → tell the user to top up (link in `next_step`), do not retry · `BAD_REQUEST` → fix the arguments · `CONTENT_POLICY` → the prompt tripped a content/safety filter; rewrite it, do not send the same text again · `RATE_LIMIT`/`NETWORK` → wait and retry once.
 
 ## Generate
 

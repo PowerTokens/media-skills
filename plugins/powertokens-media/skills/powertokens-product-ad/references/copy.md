@@ -57,14 +57,21 @@ Reject a line if **any** is true:
 3. **Unsourced number or superlative** — hours, %, “hottest”, “#1”, awards, certifications, fake reviews.
 4. **Mismatch** — caption promises a demo the shot does not show, or disagrees with VO / end-card.
 5. **Interchangeable** — swap brand name and the line still works for a competitor with no edit.
+6. **Not an original claim** — song lyrics, a brand slogan copied verbatim, a celebrity endorsement, or a long copyrighted quote. MiniMax speech blocks these (`error_type: CONTENT_POLICY`) and one blocked line used to drop the whole EN voiceover. Write the claim in your own words from the approved sheet.
 
 ## Write loop (before shot list lock)
 
 1. Build claim sheet from URL and/or sources above (ask if thin); run `claim_sheet.py validate` + show table; wait for approve.
 2. Draft 2–3 hooks that each encode **one** claim; pick one + keep others for A/B (`powertokens-social-variants`).
 3. One caption per shot = compressed claim or curiosity gap, not a scene title.
-4. VO: 30–40 words / 15s; every sentence maps to a claim-sheet row.
+4. VO: 30–40 words / 15s; every sentence maps to a claim-sheet row. **One line per `voiceover.lines[]` entry** (one TTS call each). Before any EN speech spend, tell the user the lines are original claims — no lyrics, verbatim slogans, celebrity endorsements, or long quotes.
 5. Run claim lint; then self-check against the reject list; show user the table.
+
+## If MiniMax blocks a line (`CONTENT_POLICY`)
+
+Do not cancel the other lines or the finished clips. The pipeline rewrites that segment once (paraphrase; strip lyrics, celebrity names, trademark slogans, long quotes; keep claim-sheet facts) and retries it once. If it is still blocked, `run` exits 7 with `voiceover_blocked[]` (`id`, `rejected_text`, `rewrite_attempted`). Ask the user with that line and one or two new options. Continue any segment that already succeeded. Re-run only after the line text changes (the same blocked text is not sent again).
+
+Assemble does not require every VO file **after the user accepts a partial cut**: `pipeline.py assemble --allow-partial-vo` mixes the lines that exist and puts silence in the gap (clip audio / their BGM stays). Without that yes, assemble stops and asks. Do not deliver ZH-only unless they are doing a bilingual cut and they say yes. See `docs/speech-content-policy.md`.
 
 ## Northloop anti-pattern → grounded rewrite
 

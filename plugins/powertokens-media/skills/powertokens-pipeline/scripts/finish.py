@@ -394,12 +394,18 @@ def finish(shotlist, preset=None, out=None, keep=False):
     # voiceover timing: line i starts shortly after shot i starts (lines beyond shots follow on)
     vo_state = state.get("voiceover", {})
     vo_lines = (spec.get("voiceover") or {}).get("lines", [])
-    vo_items, ass_events = [], []
+    vo_items, ass_events, vo_missing = [], [], []
     t_next = 0.0
     for i, line in enumerate(vo_lines):
         key = line.get("id") or "vo%02d" % (i + 1)
-        path = vo_state.get(key, {}).get("output")
-        if not path or not Path(path).is_file():
+        vst = vo_state.get(key, {})
+        path = vst.get("output")
+        if not path or not Path(path).is_file() or vst.get("status") == "content_policy":
+            if line.get("text"):
+                vo_missing.append({"id": key, "text": line.get("text"),
+                                   "error_type": vst.get("error_type") or (
+                                       "CONTENT_POLICY" if vst.get("status") == "content_policy" else None),
+                                   "rejected_text": vst.get("rejected_text")})
             continue
         start = max(t_next, (starts[i] if i < len(spec["shots"]) else t_next) + line.get("offset", 0.2))
         d = probe(path)
@@ -432,10 +438,14 @@ def finish(shotlist, preset=None, out=None, keep=False):
     if not keep:
         for f in parts + [joined]:
             Path(f).unlink(missing_ok=True)
-    return {"ok": True, "output": str(Path(out).resolve()), "duration_s": round(probe(out), 2),
-            "preset": preset or cfg.get("preset", "clean-premium"), "cuts_s": cuts, "transition_s": tdur,
-            "bpm": cfg.get("bpm", p["bpm"]), "subtitles": str(ass_path),
-            "music": "self-generated (finish.py make_music, MIT)" if not music_cfg.get("path") else music}
+    result = {"ok": True, "output": str(Path(out).resolve()), "duration_s": round(probe(out), 2),
+              "preset": preset or cfg.get("preset", "clean-premium"), "cuts_s": cuts, "transition_s": tdur,
+              "bpm": cfg.get("bpm", p["bpm"]), "subtitles": str(ass_path),
+              "music": "self-generated (finish.py make_music, MIT)" if not music_cfg.get("path") else music}
+    if vo_missing:
+        result["voiceover_missing"] = vo_missing
+        result["partial_voiceover"] = True
+    return result
 
 
 def _starts_after(event, t):

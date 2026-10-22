@@ -4,7 +4,7 @@ description: Produce a short vertical product ad (TikTok, Reels, Shorts, paid so
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.3.7"
+  version: "0.3.8"
 ---
 
 # Product ad (URL / image → vertical ad)
@@ -26,7 +26,7 @@ Examples: `examples/claim-sheet.json`, `examples/product-ad.json`.
 7. **Keyframes** — Seedream with the real packshot as reference at 9:16 (`keyframe` in the shot list). Download hero images from the PDP when the user did not attach files (credit the URL in the bible refs).
 8. **Shot list** → `validate` → `plan` → approval → `run`.
 9. **Review clips**, offer single-shot re-takes (costs again).
-10. **Assemble** — `pipeline.py assemble` (VO + ducked audio + burned captions). Caption burn style **defaults to A** (`tiktok`); override with `assembly.caption_style` / `captions.py --style` (`tiktok`|`pill`|`caps-punch`|`zh`) when the user asks or language needs it — same pattern as finish presets, not a hard lock. Then offer social variants (powertokens-social-variants).
+10. **Assemble** — `pipeline.py assemble` (VO + ducked audio + burned captions). Caption burn style **defaults to A** (`tiktok`); override with `assembly.caption_style` / `captions.py --style` (`tiktok`|`pill`|`caps-punch`|`zh`) when the user asks or language needs it — same pattern as finish presets, not a hard lock. A content-policy block on one VO line does not cancel the cut: other lines stay, and assemble does **not** require every VO file once the user accepts a partial (`assemble --allow-partial-vo` — silence under the missing line, clip audio / their BGM remains). Ask first. Then offer social variants (powertokens-social-variants).
 
 ## Caption delivery (hard gate)
 
@@ -65,6 +65,7 @@ Details: `powertokens-product-qc` and repo `docs/product-consistency-qc.md`.
 - Claim sheet must be `approved` (`claim_sheet.py validate` + user yes) before `plan` / `run`.
 - **Look (light touch):** default finish preset `clean-premium` (干净商业). When showing the spend estimate, one short line is enough — e.g. "默认干净商业风；要 UGC / 更电影感可以说一声." Only switch to `ugc-punchy` / `cinematic` if the user asks; do not force a three-way picker.
 - Always `pipeline.py validate` → `plan` → show the estimate table → wait for an explicit yes → `run --approve-estimate <total>`.
-- `INSUFFICIENT_CREDITS` → stop and tell the user. Timeouts → run the same command again (resumes, no double charge).
+- **EN voiceover, before spend:** say that every VO line is an original product claim from the approved claim sheet — not song lyrics, a brand slogan copied verbatim, a celebrity endorsement, or a long copyrighted quote. One MiniMax call per line (`voiceover.lines[]`). If a line comes back `CONTENT_POLICY`, follow `references/copy.md` (rewrite that line once, continue the others, ask before a partial assemble).
+- `INSUFFICIENT_CREDITS` → stop and tell the user. Timeouts → run the same command again (resumes, no double charge). `CONTENT_POLICY` on one segment does not abort the job.
 
 Never invent product claims, prices, reviews, awards or certifications.

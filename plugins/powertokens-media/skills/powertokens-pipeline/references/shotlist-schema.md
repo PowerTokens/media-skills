@@ -74,6 +74,12 @@ Flags on `run`: `--vision-qc` · `--skip-vision-qc` · `--auto-approve-hero`.
 
 Captions, voiceover lines, and `finish.end_card` / hook text are scanned for award / certification / fake-review patterns. Refuse unless `"claims_approved": true` on the shot list.
 
+## Voiceover lines
+
+One array entry is one MiniMax speech call (`speech-2.8-turbo` unless `model` is set). Give every line an `id` so a failure names that segment. Do not put the whole script in a single `text`.
+
+Lines must be original claims, not song lyrics, verbatim slogans, celebrity endorsements, or long copyrighted quotes. A block is stored as `state.voiceover.<id>.status = "content_policy"` with `rejected_text` and `rewrite_attempted`. `run` rewrites and retries that line once, then continues. The same text is not sent again until you change it. `assemble --allow-partial-vo` fills a missing line with silence after the user accepts a partial cut.
+
 ## Assemble captions
 
 `assemble` burns `shots[].caption` into the MP4 by default (TikTok/Reels lower-middle safe zone) and also writes `captions.srt`. For a product ad, UGC ad, or short drama the deliverable is that MP4 with captions burned in. The SRT is a sidecar, not a substitute. Kinetic default is A (`tiktok`); override with `assembly.caption_style` or finish/`captions.py --style` (`tiktok`|`pill`|`caps-punch`|`zh`) — not locked.

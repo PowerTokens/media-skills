@@ -4,7 +4,7 @@ description: Turn a JSON shot list into a finished video with PowerTokens — Se
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.3.1"
+  version: "0.3.2"
 ---
 
 # PowerTokens shot-list pipeline
@@ -31,11 +31,21 @@ Schema: `references/shotlist-schema.md`. Examples: `examples/*.json`.
 7. **If anything fails or times out:** read `failed`, fix, run the same command again. Finished shots
    are skipped; submitted shots are resumed by task id (no double charge). `INSUFFICIENT_CREDITS` → stop
    and tell the user.
+   **Voiceover is one MiniMax call per `voiceover.lines[]` entry** (default `speech-2.8-turbo`). A line that
+   returns `CONTENT_POLICY` is rewritten once and retried once; other lines still generate. `run` then exits 7
+   with `voiceover_blocked` (`id`, `rejected_text`, `rewrite_attempted`). Ask the user with that line and
+   rewrite options. Do not send the same text again (a second `run` skips it until the line changes).
+   Clips already saved stay saved. Details: `docs/speech-content-policy.md`.
 8. **Review:** list clips in `<workdir>/clips/`. Offer re-takes of single shots (delete that shot's entry
    in `state.json` to regenerate it — this costs again; say so).
 9. **Assemble (free):** `python3 scripts/pipeline.py assemble shots.json` → normalizes to the project
    ratio, concatenates, mixes voiceover over ducked clip audio, burns captions in TikTok lower-middle safe zone (`captions.srt` is also saved as a sidecar; override style via `assembly.caption_style`).
    `--dry-run` prints the ffmpeg commands. See **Burned-in captions** before you treat the MP4 as delivered.
+   If a VO line is `CONTENT_POLICY` blocked, assemble **asks** (exit 7) instead of failing the clips.
+   It does not require every VO file once the user accepts a partial cut:
+   `assemble --allow-partial-vo` uses the lines that exist and inserts silence for the gap (ducked clip audio remains; add their BGM in `finish` if they want music).
+   Bilingual EN blocked: offer a ZH-only assemble only after they say yes. Do not pass `--allow-partial-vo` before that yes.
+   A partial cut still burns captions unless they also asked for `--no-captions`.
 10. **Variants (free):** `python3 scripts/pipeline.py reformat final.mp4 --ratio 1:1 --mode crop|pad`.
 
 Report: final path, `"captions_burned": true`, duration, what was spent (estimate), anything not generated. If `captions_burned` is false or the result has a `warning`, fix it and re-assemble before handing over the path.

@@ -110,6 +110,14 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(len(posts), 1)
             self.assertEqual(w.call_args[0][2], "task_abc")
 
+    def test_vo_join_reencodes_only_when_gap_present(self):
+        plain = pipeline.vo_join_cmd(["/tmp/vo01.mp3"], "/tmp/vo_concat.txt", "/tmp/voiceover.m4a")
+        self.assertIn("concat", plain)
+        self.assertNotIn("-filter_complex", plain)
+        gap = pipeline.vo_join_cmd(["/tmp/vo01-gap.m4a", "/tmp/vo02.mp3"], "/tmp/vo_concat.txt", "/tmp/out.m4a")
+        self.assertIn("-filter_complex", gap)
+        self.assertIn("aresample=48000", " ".join(gap))
+
     def test_srt(self):
         spec = {"shots": [{"caption": "Hi"}, {}, {"caption": "Bye"}]}
         srt = pipeline.build_srt(spec, [2.0, 1.5, 3.0])
@@ -135,6 +143,108 @@ class PipelineTests(unittest.TestCase):
         self.assertFalse(both["captions_burned"])
         self.assertIn("No shot caption", both["warning"])
         self.assertIn("--no-captions", both["warning"])
+
+    def _vo_spec(self, tmp, lines):
+        spec = {"project": "vo-policy", "_workdir": tmp, "defaults": {},
+                "voiceover": {"model": "speech-2.8-turbo", "voice": "English_Trustworthy_Man", "lines": lines}}
+        return spec
+
+    def test_voiceover_policy_rewrites_one_segment_and_continues(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            spec = self._vo_spec(tmp, [
+                {"id": "vo01", "text": 'She sang "we will rock you" but this bottle keeps coffee hot for 12 hours.'},
+                {"id": "vo02", "text": "Shop from the link below."},
+            ])
+            calls = []
+
+            def fake_request(method, path, payload=None, cred=None, **k):
+                text = (payload or {}).get("input") or ""
+                calls.append(text)
+                if "rock you" in text:
+                    raw = json.dumps({"error": {"message": "blocked by the audio copyright policy"}}).encode()
+                    return 400, raw, {}
+                raw = json.dumps({"data": {"audio": "https://cdn.example.com/a.mp3", "status": 2}}).encode()
+                return 200, raw, {}
+
+            def fake_download(url, out, cred=None):
+                Path(out).parent.mkdir(parents=True, exist_ok=True)
+                Path(out).write_bytes(b"mp3")
+                return str(Path(out).resolve())
+
+            with mock.patch.object(pt, "request", side_effect=fake_request), \
+                 mock.patch.object(pt, "download", side_effect=fake_download):
+                report = pipeline.run_voiceover(spec, "sk-test", {"shots": {}, "voiceover": {}}, Path(tmp))
+            self.assertEqual(report["done"], ["vo01", "vo02"])
+            self.assertEqual(report["blocked"], [])
+            self.assertEqual(report["rewritten"][0]["id"], "vo01")
+            self.assertNotIn("rock you", report["rewritten"][0]["spoken_text"])
+            self.assertIn("12 hours", report["rewritten"][0]["spoken_text"])
+            self.assertTrue(any("rock you" in c for c in calls))
+            self.assertGreaterEqual(len(calls), 3)
+            state = pipeline.load_state(spec)
+            self.assertEqual(state["voiceover"]["vo01"]["status"], "done")
+            self.assertTrue(state["voiceover"]["vo02"]["output"].endswith("vo02.mp3"))
+
+    def test_voiceover_policy_block_does_not_retry_same_text(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            blocked = 'Holds for twelve hours. "copyrighted lyric goes here today"'
+            spec = self._vo_spec(tmp, [
+                {"id": "vo01", "text": blocked},
+                {"id": "vo02", "text": "Shop from the link below."},
+            ])
+            calls = []
+
+            def fake_request(method, path, payload=None, cred=None, **k):
+                text = (payload or {}).get("input") or ""
+                calls.append(text)
+                if "hours" in text or "copyrighted" in text:
+                    raw = json.dumps({"error": {"message": "content policy: copyright"}}).encode()
+                    return 400, raw, {}
+                raw = json.dumps({"data": {"audio": "https://cdn.example.com/a.mp3", "status": 2}}).encode()
+                return 200, raw, {}
+
+            def fake_download(url, out, cred=None):
+                Path(out).parent.mkdir(parents=True, exist_ok=True)
+                Path(out).write_bytes(b"mp3")
+                return str(Path(out).resolve())
+
+            state = {"shots": {}, "voiceover": {}}
+            with mock.patch.object(pt, "request", side_effect=fake_request), \
+                 mock.patch.object(pt, "download", side_effect=fake_download):
+                report = pipeline.run_voiceover(spec, "sk-test", state, Path(tmp))
+            self.assertEqual(report["done"], ["vo02"])
+            self.assertEqual(report["blocked"][0]["id"], "vo01")
+            self.assertEqual(report["blocked"][0]["error_type"], "CONTENT_POLICY")
+            self.assertIn("copyrighted lyric", report["blocked"][0]["rejected_text"])
+            self.assertTrue(report["blocked"][0]["rewrite_attempted"])
+            self.assertNotIn("copyrighted", report["blocked"][0]["rewrite_attempted"])
+            n = len(calls)
+            with mock.patch.object(pt, "request", side_effect=fake_request), \
+                 mock.patch.object(pt, "download", side_effect=fake_download):
+                again = pipeline.run_voiceover(spec, "sk-test", pipeline.load_state(spec), Path(tmp))
+            self.assertEqual(len(calls), n)
+            self.assertEqual(again["blocked"][0]["id"], "vo01")
+            self.assertEqual(again["done"], ["vo02"])
+
+    def test_assemble_asks_before_partial_vo(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            spec = pipeline.load(project(tmp, "bilingual-vo.json"))
+            pipeline.save_state(spec, {"shots": {}, "voiceover": {
+                "vo01": {"status": "content_policy", "error_type": "CONTENT_POLICY",
+                         "rejected_text": "Happy birthday to you", "rewrite_attempted": None},
+            }})
+            buf = io.StringIO()
+            with mock.patch("sys.stdout", buf):
+                rc = pipeline.cmd_assemble(spec, None, True, True, allow_partial_vo=False)
+            self.assertEqual(rc, 7)
+            payload = json.loads(buf.getvalue())
+            self.assertEqual(payload["error_type"], "CONTENT_POLICY")
+            self.assertEqual(payload["voiceover_missing"][0]["id"], "vo01")
+            files, missing, pre, blocked = pipeline.voiceover_for_assemble(
+                spec, pipeline.load_state(spec), Path(spec["_workdir"]), True)
+            self.assertTrue(blocked)
+            self.assertTrue(any("anullsrc" in part for cmd in pre for part in cmd))
+            self.assertTrue(any(str(p).endswith("vo01-gap.m4a") for p in files))
 
 
 @unittest.skipUnless(shutil.which("ffmpeg") and shutil.which("ffprobe"), "ffmpeg not installed")
@@ -195,6 +305,36 @@ class AssembleTests(unittest.TestCase):
             r = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v", "-show_entries",
                                 "stream=width,height", "-of", "csv=p=0", str(sq)], capture_output=True, text=True)
             self.assertEqual(r.stdout.strip(), "1080,1080")
+
+    def test_assemble_partial_vo_with_silence_gap(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            spec = pipeline.load(project(tmp, "bilingual-vo.json"))
+            wd = Path(spec["_workdir"])
+            (wd / "clips").mkdir(parents=True)
+            state = {"shots": {}, "voiceover": {}}
+            for shot in spec["shots"]:
+                c = wd / "clips" / ("%s.mp4" % shot["id"])
+                subprocess.run(["ffmpeg", "-y", "-f", "lavfi", "-i", "testsrc=size=720x1280:rate=24:duration=2",
+                                "-f", "lavfi", "-i", "sine=frequency=440:duration=2", "-shortest",
+                                "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", str(c)],
+                               check=True, capture_output=True)
+                state["shots"][shot["id"]] = {"status": "done", "output": str(c)}
+            (wd / "voiceover").mkdir()
+            vo = wd / "voiceover" / "vo02.mp3"
+            subprocess.run(["ffmpeg", "-y", "-f", "lavfi", "-i", "sine=frequency=220:duration=1", str(vo)],
+                           check=True, capture_output=True)
+            state["voiceover"]["vo01"] = {"status": "content_policy", "error_type": "CONTENT_POLICY",
+                                          "rejected_text": spec["voiceover"]["lines"][0]["text"],
+                                          "rewrite_attempted": None}
+            state["voiceover"]["vo02"] = {"status": "done", "output": str(vo)}
+            pipeline.save_state(spec, state)
+            with mock.patch("sys.stdout"):
+                rc = pipeline.cmd_assemble(spec, None, False, False, True)
+            self.assertEqual(rc, 0)
+            final = wd / "thermos-ad-zh-final.mp4"
+            self.assertTrue(final.is_file())
+            self.assertAlmostEqual(pipeline.probe_duration(str(final)), 4.0, delta=0.4)
+            self.assertTrue((wd / "voiceover" / "vo01-gap.m4a").is_file())
 
 
 

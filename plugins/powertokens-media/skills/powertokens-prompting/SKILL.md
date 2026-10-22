@@ -4,7 +4,7 @@ description: Write and fix prompts for PowerTokens video, image and voice models
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.2.1"
+  version: "0.2.2"
 ---
 
 # Prompting PowerTokens models
@@ -27,7 +27,7 @@ Load only what you need:
 - `references/timing-and-shots.md` — clip length vs cut length, timeline prompts, short-drama pacing
 - `references/wan.md`, `references/seedance.md`, `references/kling.md` — per-family patterns
 - `references/seedream.md` — image prompts, keyframes, text in images
-- `references/speech.md` — voiceover scripts that sound natural
+- `references/speech.md` — voiceover scripts that sound natural; original claims only (no lyrics / verbatim slogans)
 - `references/pitfalls.md` — failure → fix table and a pre-flight checklist
 
 Core rules:

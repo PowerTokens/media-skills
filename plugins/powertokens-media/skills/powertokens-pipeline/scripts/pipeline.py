@@ -23,6 +23,7 @@ resumes (polls/downloads) instead of paying twice. Schema: references/shotlist-s
 import argparse
 import concurrent.futures as cf
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -33,6 +34,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import pt_common as pt  # noqa: E402
 import video  # noqa: E402
+import speech  # noqa: E402
 import product_qc  # noqa: E402
 import character_qc  # noqa: E402
 import claim_lint  # noqa: E402
@@ -503,30 +505,94 @@ def run_shot(spec, shot, cred, state, wd, opts=None):
 
 
 def run_voiceover(spec, cred, state, wd):
+    """One MiniMax call per voiceover line. CONTENT_POLICY rewrites that line once, retries once,
+    then records the block and continues the other lines. Credits/auth still abort."""
     vo = spec.get("voiceover") or {}
     lines = vo.get("lines", [])
+    report = {"done": [], "blocked": [], "rewritten": []}
     if not lines:
-        return []
-    done = []
+        return report
     for i, line in enumerate(lines):
         key = line.get("id") or "vo%02d" % (i + 1)
+        text = line.get("text") or ""
         st = state["voiceover"].setdefault(key, {})
         if st.get("status") == "done" and Path(st.get("output", "")).is_file():
-            done.append(key); continue
-        body = {"model": line.get("model", vo.get("model", "speech-2.8-turbo")), "input": line["text"],
+            report["done"].append(key)
+            continue
+        if st.get("status") == "content_policy" and (st.get("rejected_text") or "") == text[:500]:
+            report["blocked"].append(_blocked_from_state(key, st, text))
+            continue
+        body = {"model": line.get("model", vo.get("model", "speech-2.8-turbo")), "input": text,
                 "voice": line.get("voice", vo.get("voice", "English_Trustworthy_Man")),
                 "speed": line.get("speed", vo.get("speed", 1.0)), "response_format": "mp3",
                 "metadata": {"output_format": "url"}}
-        code, content, headers = pt.request("POST", "/v1/audio/speech", body, cred=cred, timeout=300, raw=True)
-        url, parsed = pt.speech_audio_url(code, content, headers)
-        out = wd / "voiceover" / ("%s.mp3" % key)
-        if not url:
-            pt.raise_for(code, parsed, "Voiceover %s" % key)
-        st["output"] = pt.download(url, out)
-        st["status"] = "done"
+        out = str(wd / "voiceover" / ("%s.mp3" % key))
+        label = speech.segment_label(key, text)
+        try:
+            path, spoken, rewritten_from = speech.speak_with_policy_retry(cred, body, out, label)
+        except pt.PTError as exc:
+            if exc.kind in ("INSUFFICIENT_CREDITS", "AUTH", "NO_CREDENTIAL"):
+                save_state(spec, state)
+                raise
+            if exc.kind != "CONTENT_POLICY":
+                st.update(status="failed", error_type=exc.kind, error=str(exc))
+                save_state(spec, state)
+                raise
+            st.clear()
+            st.update(status="content_policy", error_type="CONTENT_POLICY", error=str(exc),
+                      rejected_text=(exc.details.get("rejected_text") or text)[:500],
+                      rewrite_attempted=exc.details.get("rewrite_attempted"),
+                      segment_id=key)
+            save_state(spec, state)
+            report["blocked"].append(_blocked_from_state(key, st, text))
+            continue
+        st.clear()
+        st.update(status="done", output=path, segment_id=key, spoken_text=spoken)
+        if rewritten_from:
+            st["rewritten_from"] = rewritten_from
+            report["rewritten"].append({"id": key, "rejected_text": rewritten_from, "spoken_text": spoken})
         save_state(spec, state)
-        done.append(key)
-    return done
+        report["done"].append(key)
+    return report
+
+
+def _blocked_from_state(key, st, text):
+    return {"id": key, "rejected_text": st.get("rejected_text") or text,
+            "rewrite_attempted": st.get("rewrite_attempted"),
+            "error_type": "CONTENT_POLICY", "error": st.get("error")}
+
+
+def voiceover_snapshot(spec, state):
+    """Done / blocked / rewritten voiceover lines in shot-list order."""
+    lines = (spec.get("voiceover") or {}).get("lines") or []
+    vstate = state.get("voiceover") or {}
+    done, blocked, rewritten = [], [], []
+    for i, line in enumerate(lines):
+        key = line.get("id") or "vo%02d" % (i + 1)
+        st = vstate.get(key) or {}
+        if st.get("status") == "done" and st.get("output") and Path(st["output"]).is_file():
+            done.append(key)
+            if st.get("rewritten_from"):
+                rewritten.append({"id": key, "rejected_text": st.get("rewritten_from"),
+                                  "spoken_text": st.get("spoken_text")})
+        elif st.get("status") == "content_policy":
+            blocked.append(_blocked_from_state(key, st, line.get("text") or ""))
+    return {"done": done, "blocked": blocked, "rewritten": rewritten}
+
+
+def estimate_line_seconds(text):
+    """Rough spoken duration so a missing line can be replaced with silence."""
+    text = text or ""
+    cjk = len(re.findall(r"[\u4e00-\u9fff]", text))
+    words = len(re.findall(r"[A-Za-z0-9']+", text))
+    if cjk and cjk >= words:
+        return max(0.6, round(cjk / 4.5, 3))
+    return max(0.6, round((words or 1) / 2.5, 3))
+
+
+def silence_cmd(path, seconds):
+    return ["ffmpeg", "-y", "-f", "lavfi", "-t", "%.3f" % seconds, "-i", "anullsrc=r=48000:cl=stereo",
+            "-c:a", "aac", path]
 
 
 def cmd_run(spec, approve, parallel, opts=None):
@@ -557,15 +623,35 @@ def cmd_run(spec, approve, parallel, opts=None):
                 if exc.kind in ("INSUFFICIENT_CREDITS", "AUTH", "NO_CREDENTIAL", "VISION_QC"):
                     for other in futs:
                         other.cancel()
-    vo = []
+    vo_report = {"done": [], "blocked": [], "rewritten": []}
     if not failures and not hero_pending:
-        vo = run_voiceover(spec, cred, state, wd)
-    ok = not failures and not hero_pending
+        try:
+            vo_report = run_voiceover(spec, cred, state, wd)
+        except pt.PTError as exc:
+            snap = voiceover_snapshot(spec, state)
+            out = {"ok": False, "done": results, "failed": failures, "hero_pending": hero_pending,
+                   "voiceover": snap["done"], "voiceover_blocked": snap["blocked"],
+                   "error_type": exc.kind, "error": str(exc), "state": str(state_path(spec))}
+            for key, val in exc.details.items():
+                if key in out:
+                    continue
+                if val is None and key != "rewrite_attempted":
+                    continue
+                out[key] = val
+            out["next_step"] = "Clips already saved are kept. Fix this error and run the same command again."
+            pt.emit(out)
+            return exc.exit_code
+    ok = not failures and not hero_pending and not vo_report["blocked"]
     out = {"ok": ok, "done": results, "failed": failures, "hero_pending": hero_pending,
-           "voiceover": vo, "state": str(state_path(spec)),
+           "voiceover": vo_report["done"], "voiceover_blocked": vo_report["blocked"],
+           "voiceover_rewritten": vo_report["rewritten"], "state": str(state_path(spec)),
            "vision_qc": vision_qc_wanted(spec, opts.get("vision_qc"), opts.get("skip_vision_qc"))}
     if failures:
         out["next_step"] = "Fix the cause, then run the same command again; finished and submitted shots resume."
+    elif vo_report["blocked"]:
+        out["partial"] = True
+        out["error_type"] = "CONTENT_POLICY"
+        out["next_step"] = speech.POLICY_NEXT_STEP
     elif hero_pending:
         out["next_step"] = (
             "Review keyframes, then: pipeline.py approve-hero <shotlist> <shot_id> "
@@ -576,6 +662,8 @@ def cmd_run(spec, approve, parallel, opts=None):
     pt.emit(out)
     if failures:
         return 4
+    if vo_report["blocked"]:
+        return 7
     if hero_pending:
         return 5
     return 0
@@ -639,6 +727,23 @@ def assemble_caption_report(srt, burn):
     return {"captions_burned": burned, "warning": warning, "next_step": next_step}
 
 
+def vo_join_cmd(vo_files, vo_cat, vo_joined):
+    """Concat VO. Gaps are a different codec than MiniMax MP3, so partial cuts re-encode."""
+    gaps = [v for v in vo_files if str(v).endswith("-gap.m4a") or str(v).endswith("-gap.mp3")]
+    if not gaps:
+        return ["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(vo_cat), "-c:a", "aac", vo_joined]
+    filters, labels = [], []
+    for i in range(len(vo_files)):
+        filters.append("[%d:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo[a%d]" % (i, i))
+        labels.append("[a%d]" % i)
+    filters.append("%sconcat=n=%d:v=0:a=1[a]" % ("".join(labels), len(vo_files)))
+    cmd = ["ffmpeg", "-y"]
+    for path in vo_files:
+        cmd.extend(["-i", path])
+    cmd.extend(["-filter_complex", ";".join(filters), "-map", "[a]", "-c:a", "aac", vo_joined])
+    return cmd
+
+
 def ffmpeg_cmds(spec, clips, durations, vo_files, out, burn=True, keep_clip_audio=True):
     ratio = spec["defaults"].get("ratio", "9:16")
     w, h = RATIO_WH.get(ratio, (1080, 1920))
@@ -663,7 +768,7 @@ def ffmpeg_cmds(spec, clips, durations, vo_files, out, burn=True, keep_clip_audi
     if vo_files:
         vo_cat = wd / "vo_concat.txt"
         vo_joined = str(wd / "voiceover.m4a")
-        cmds.append(["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(vo_cat), "-c:a", "aac", vo_joined])
+        cmds.append(vo_join_cmd(vo_files, vo_cat, vo_joined))
         mixed = str(wd / "mixed.mp4")
         duck = spec.get("assembly", {}).get("clip_audio_volume", 0.25)
         cmds.append(["ffmpeg", "-y", "-i", current, "-i", vo_joined, "-filter_complex",
@@ -700,26 +805,76 @@ def has_audio(path):
         return False
 
 
-def cmd_assemble(spec, out, burn, dry):
+def voiceover_for_assemble(spec, state, wd, allow_partial):
+    """Ordered VO paths. Policy-blocked lines refuse assemble until --allow-partial-vo,
+    which fills each gap with silence so later lines stay in place."""
+    lines = (spec.get("voiceover") or {}).get("lines") or []
+    vstate = state.get("voiceover") or {}
+    if not lines:
+        files = []
+        for v in vstate.values():
+            path = v.get("output")
+            if path and Path(path).is_file() and v.get("status") != "content_policy":
+                files.append(path)
+        return files, [], [], False
+    files, missing, pre_cmds = [], [], []
+    policy_blocked = False
+    for i, line in enumerate(lines):
+        key = line.get("id") or "vo%02d" % (i + 1)
+        st = vstate.get(key) or {}
+        path = st.get("output")
+        blocked = st.get("status") == "content_policy" or st.get("error_type") == "CONTENT_POLICY"
+        if path and Path(path).is_file() and not blocked:
+            files.append(path)
+            continue
+        info = {"id": key, "text": line.get("text") or "",
+                "rejected_text": st.get("rejected_text") or line.get("text") or "",
+                "rewrite_attempted": st.get("rewrite_attempted"),
+                "error_type": "CONTENT_POLICY" if blocked else st.get("error_type"),
+                "status": st.get("status") or "missing"}
+        if blocked:
+            policy_blocked = True
+        missing.append(info)
+        if allow_partial:
+            gap = str(wd / "voiceover" / ("%s-gap.m4a" % key))
+            pre_cmds.append(silence_cmd(gap, estimate_line_seconds(line.get("text") or "")))
+            files.append(gap)
+    return files, missing, pre_cmds, policy_blocked
+
+
+def cmd_assemble(spec, out, burn, dry, allow_partial_vo=False):
+    state = load_state(spec)
+    wd = Path(spec["_workdir"])
+    vo_files, missing, pre_cmds, policy_blocked = voiceover_for_assemble(spec, state, wd, allow_partial_vo)
+    if policy_blocked and not allow_partial_vo:
+        pt.emit({"ok": False, "error_type": "CONTENT_POLICY", "partial": True,
+                 "error": "Voiceover segment(s) blocked. Assemble skipped until you choose.",
+                 "voiceover_missing": [m for m in missing if m.get("error_type") == "CONTENT_POLICY" or m.get("status") == "content_policy"],
+                 "next_step": (
+                     "Ask the user before assembling. Options: rewrite the blocked line and re-run; "
+                     "assemble with the VO that exists and silence for the gap "
+                     "(`pipeline.py assemble --allow-partial-vo`); or, when bilingual and EN is blocked, "
+                     "deliver the ZH cut only. Do not drop the finished clips."
+                 ),
+                 "state": str(state_path(spec))})
+        return 7
     if not shutil.which("ffmpeg") or not shutil.which("ffprobe"):
         raise pt.PTError("ffmpeg/ffprobe not found. Install ffmpeg (brew install ffmpeg / apt install ffmpeg / "
                          "winget install ffmpeg) or deliver clips separately.", "MISSING_FFMPEG", 2)
-    state = load_state(spec)
     clips, durations = [], []
     for shot in spec["shots"]:
         st = state["shots"].get(shot["id"], {})
-        path = st.get("output") or str(Path(spec["_workdir"]) / "clips" / ("%s.mp4" % shot["id"]))
+        path = st.get("output") or str(wd / "clips" / ("%s.mp4" % shot["id"]))
         if not Path(path).is_file():
             raise pt.PTError("Clip for %s missing (%s). Run `run` first." % (shot["id"], path), "BAD_REQUEST", 3)
         clips.append(path)
         durations.append(probe_duration(path) or float(shot_settings(spec, shot)["duration"]))
-    vo_files = [v["output"] for v in state.get("voiceover", {}).values() if v.get("output")]
-    wd = Path(spec["_workdir"])
     out = out or str(wd / ("%s-final.mp4" % spec["project"]))
     cmds, norm, srt = ffmpeg_cmds(spec, clips, durations, vo_files, out, burn)
     report = assemble_caption_report(srt, burn)
+    partial = bool(missing) and allow_partial_vo
 
-    def _emit(payload, include_caption_path):
+    def _emit(payload, include_caption_path, dry_run):
         payload["captions_burned"] = report["captions_burned"]
         if include_caption_path:
             payload["captions"] = str(wd / "captions.srt") if srt else None
@@ -727,22 +882,26 @@ def cmd_assemble(spec, out, burn, dry):
             payload["warning"] = report["warning"]
             payload["next_step"] = report["next_step"]
             print("warning: " + report["warning"], file=sys.stderr)
+        if missing and (dry_run or partial):
+            payload["voiceover_missing"] = missing
+            payload["partial_voiceover"] = partial
         pt.emit(payload)
 
     if dry:
-        _emit({"dry_run": True, "commands": [" ".join(c) for c in cmds]}, False)
+        _emit({"dry_run": True, "commands": [" ".join(c) for c in pre_cmds + cmds]}, False, True)
         return 0
     (wd / "norm").mkdir(parents=True, exist_ok=True)
+    (wd / "voiceover").mkdir(parents=True, exist_ok=True)
     (wd / "concat.txt").write_text("".join("file '%s'\n" % n.replace("'", r"'\''") for n in norm), encoding="utf-8")
     if vo_files:
         (wd / "vo_concat.txt").write_text("".join("file '%s'\n" % v for v in vo_files), encoding="utf-8")
     if srt:
         (wd / "captions.srt").write_text(srt, encoding="utf-8")
-    for c in cmds:
+    for c in pre_cmds + cmds:
         r = subprocess.run(c, capture_output=True, text=True)
         if r.returncode != 0:
             raise pt.PTError("ffmpeg failed: %s\n%s" % (" ".join(c[:6]), r.stderr[-800:]), "FFMPEG")
-    _emit({"ok": True, "output": str(Path(out).resolve()), "duration_s": round(probe_duration(out), 2)}, True)
+    _emit({"ok": True, "output": str(Path(out).resolve()), "duration_s": round(probe_duration(out), 2)}, True, False)
     return 0
 
 
@@ -798,6 +957,9 @@ def main():
                    help="explicit opt-out: do not burn captions into the MP4 (captions.srt still written). "
                         "Not a complete product-ad, UGC, or short-drama delivery unless the user asked "
                         "for softsubs only or no burn-in")
+    a.add_argument("--allow-partial-vo", action="store_true",
+                   help="assemble even if a voiceover line was content-policy blocked; silence fills the gap. "
+                        "Still burns captions unless --no-captions was also passed")
     a.add_argument("--dry-run", action="store_true")
     f = sub.add_parser("reformat")
     f.add_argument("video")
@@ -833,7 +995,7 @@ def main():
         return cmd_run(spec, args.approve_estimate, args.parallel, opts)
     if args.cmd == "status":
         return cmd_status(spec)
-    return cmd_assemble(spec, args.output, not args.no_captions, args.dry_run)
+    return cmd_assemble(spec, args.output, not args.no_captions, args.dry_run, args.allow_partial_vo)
 
 
 if __name__ == "__main__":

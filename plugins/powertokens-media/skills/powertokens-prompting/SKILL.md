@@ -11,6 +11,15 @@ metadata:
 
 Use one universal shot formula, then apply the family notes.
 
+## Credentials
+
+This skill does not spend and has no login script. If a credential check has just succeeded in this conversation (`pt_login.py status` → `ok: true`, or HTTP 200 on a live check such as `pt_models.py`) — including a re-check after a new key — **ask a yes/no to continue. Do not stop at a status dump.** Do not explain HTTP 200 unless they ask. Do not say only that they can continue.
+
+- A plan or estimate was already shown: restate the **model** and **est. cost**, ask whether to continue that generation, and wait for an explicit yes before any skill spends. A yes from before the key wall does not replace this question.
+- No plan yet: ask whether to proceed with **handing this prompt to intake or a cost plan on the skill that will generate**. That yes only starts the unpaid step.
+- If the key is missing: the user creates one at https://powertokens.ai/api-keys?utm_source=media-skills&utm_medium=skill&utm_campaign=media-skills and sets `POWERTOKENS_API_KEY`. Browser sign-in (`pt_login.py login`) is not enabled yet. Never ask for the key in chat.
+- Ask in the user's language. If they already said yes to this question for this plan, do not ask again. Canonical wording: repo `docs/auth-after-verify.md`.
+
 **Shot formula:** `[shot size + angle] of [subject with 2–3 fixed visual traits] [doing one clear action] in [setting], [camera movement], [lighting], [style/grade]. [Audio: dialogue in quotes / SFX / music].`
 
 Load only what you need:

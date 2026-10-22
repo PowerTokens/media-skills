@@ -15,9 +15,12 @@ Scripts live in `scripts/` next to this file. Run them with `python3` (3.8+, no 
 
 Run `python3 scripts/pt_login.py status`.
 
-- `ok: true` → go ahead.
 - `ok: false` → the user needs a PowerTokens API key. They create one at https://powertokens.ai/api-keys?utm_source=media-skills&utm_medium=skill&utm_campaign=media-skills and set `POWERTOKENS_API_KEY` in their shell. New users sign up at https://powertokens.ai/?utm_source=media-skills&utm_medium=skill&utm_campaign=media-skills.
   Browser sign-in (`pt_login.py login`) is not enabled yet; it will come in a later release when PowerTokens publishes OAuth.
+- `ok: true`, or a live check such as `python3 scripts/pt_models.py` returns HTTP 200 — including a re-check after a new key: **ask a yes/no to continue. Do not stop at a status dump.** Do not explain HTTP 200 unless they ask. Do not say only that they can continue.
+  - A plan or estimate was already shown: restate the **model** and **est. cost**, ask whether to continue that generation, and wait for an explicit yes before `run`, `generate`, or any other spend. A yes from before the key wall does not replace this question.
+  - No plan yet: ask whether to proceed with **picking settings and a `--dry-run` cost** (default model stays Seedance Mini). That yes only starts the unpaid step. Do not spend until they later approve the estimate.
+  - Ask in the user's language. If they already said yes to this question for this plan, do not ask again. Canonical wording: repo `docs/auth-after-verify.md`.
 
 Never ask the user to paste a key into the chat, never write a key into files, never print it.
 

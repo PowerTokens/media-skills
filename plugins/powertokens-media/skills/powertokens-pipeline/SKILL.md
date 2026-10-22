@@ -14,7 +14,12 @@ Schema: `references/shotlist-schema.md`. Examples: `examples/*.json`.
 
 ## Steps (always in this order)
 
-1. **Credentials:** `python3 scripts/pt_login.py status` (see the powertokens-video skill for API key setup).
+1. **Credentials:** `python3 scripts/pt_login.py status`.
+   - Not ok: the user creates a key at https://powertokens.ai/api-keys?utm_source=media-skills&utm_medium=skill&utm_campaign=media-skills and sets `POWERTOKENS_API_KEY`. Browser sign-in (`pt_login.py login`) is not enabled yet. Never ask for the key in chat.
+   - **Valid** (`ok: true`, or HTTP 200 on a live check such as `python3 scripts/pt_models.py`), including a re-check after a new key: **ask a yes/no to continue. Do not stop at a status dump.** Do not explain HTTP 200 unless they ask. Do not say only that they can continue.
+     - A plan or estimate was already shown: restate the **model** and **est. cost**, ask whether to continue that generation, and wait for an explicit yes before `run` or any other spend. A yes from before the key wall does not replace this question.
+     - No plan yet: ask whether to proceed with **writing or validating the shot list, then `plan`**. That yes only starts the unpaid step. Do not spend until they later approve the estimate.
+     - Ask in the user's language. If they already said yes to this question for this plan, do not ask again. Canonical wording: repo `docs/auth-after-verify.md`.
 2. **Write the shot list** to `<project>.json` (use an example as a template; apply powertokens-prompting).
 3. **Validate (free):** `python3 scripts/pipeline.py validate shots.json` — fix every error.
 4. **Plan (free):** `python3 scripts/pipeline.py plan shots.json` → per-shot and total estimate plus

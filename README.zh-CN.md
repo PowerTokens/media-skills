@@ -92,7 +92,7 @@ Agent 会选对应 skill，调用 PowerTokens，轮询任务，并把结果写�
 | `powertokens-pipeline` | JSON 分镜 → 关键帧 → 镜头 → 旁白 → 成片 MP4 + 字幕；先估费 |
 | `powertokens-product-ad` | 商品链接/照片 → claim sheet → 竖屏广告（分镜、图生视频、旁白、字幕） |
 | `powertokens-product-qc` | 通用产品 bible（大类 → 分型 → 部件）+ 部件参考统一 + 视觉质检 |
-| `powertokens-ugc-ad` | UGC / 口播风广告，固定虚构人设 |
+| `powertokens-ugc-ad` | UGC / 口播广告：按品类写节拍，付费前过费用门，出镜必须有角色 bible |
 | `powertokens-short-drama` | 多镜短剧，角色参考图一致 |
 | `powertokens-social-variants` | 9:16 / 1:1 / 16:9、钩子 A/B、裁剪 |
 | `powertokens-bilingual-voiceover` | 同一成片的中英旁白版本 |
@@ -102,37 +102,48 @@ Agent 会选对应 skill，调用 PowerTokens，轮询任务，并把结果写�
 
 ## 安装
 
-### Claude Code（插件市场）
+整包是一个插件 `powertokens-media`。装上这个插件就会带上全部技能。Codex 和 Claude Code 没有单独的“全部安装”开关。`marketplace add` 只登记来源，真正装上整包的是后面的插件安装。
+
+### 整包
+
+**Claude Code**
 
 ```text
 /plugin marketplace add PowerTokens/media-skills
 /plugin install powertokens-media@powertokens
 ```
 
-或手动拷贝技能目录：
-
-```bash
-git clone https://github.com/PowerTokens/media-skills
-cp -r media-skills/plugins/powertokens-media/skills/* ~/.claude/skills/
-```
-
-### Codex
-
-```text
-$skill-installer install https://github.com/PowerTokens/media-skills/tree/main/plugins/powertokens-media/skills/powertokens-video
-```
-
-（其它技能同理），或：
+**Codex**
 
 ```bash
 codex plugin marketplace add PowerTokens/media-skills
+codex plugin add powertokens-media@powertokens
 ```
 
-手动：拷到 `~/.codex/skills/`（或 `~/.agents/skills/`）后重启。
+装完后新开一个 Codex 对话，技能才会出现。
 
-### 其它 Agent Skills 宿主
+**拷贝全部技能目录**
 
-凡是能加载 `SKILL.md` 目录的工具，都可以用 `plugins/powertokens-media/skills/`。
+```bash
+git clone https://github.com/PowerTokens/media-skills
+cp -R media-skills/plugins/powertokens-media/skills/* ~/.codex/skills/
+```
+
+Claude Code 用 `~/.claude/skills/`。其它宿主多用 `~/.agents/skills/`。拷完后重启应用。
+
+### 只装一个技能
+
+Codex 的 `$skill-installer` 一次只装一个目录。把路径最后一段换成技能表里的任意 id：
+
+```text
+$skill-installer install https://github.com/PowerTokens/media-skills/tree/main/plugins/powertokens-media/skills/powertokens-product-ad
+```
+
+也可以只把那一个文件夹拷进 `~/.codex/skills/`、`~/.claude/skills/` 或 `~/.agents/skills/`。
+
+### 其它宿主
+
+凡是能加载 `SKILL.md` 目录的工具，都可以用 `plugins/powertokens-media/skills/`。要整包就拷整个 `skills` 目录，要单个技能就拷一个子文件夹。
 
 ## 接入 PowerTokens 账号
 

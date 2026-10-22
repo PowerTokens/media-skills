@@ -4,7 +4,7 @@ description: Write and produce AI short dramas and multi-shot story videos (vert
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.2.4"
+  version: "0.2.5"
 ---
 
 # Short drama (multi-shot, consistent characters)
@@ -15,7 +15,7 @@ Example: `examples/short-drama.json`.
 
 ## Workflow
 1. **Logline + episode goal** — one sentence; each episode ends on a hook/cliffhanger.
-2. **Character bible** — per character: name, age, 3 fixed visual traits, outfit, optional `forbid` / refs. Set `"kind": "short-drama"` and either inline `characters` (description required) or `"character_bible": "character-bible.json"` (see `examples/character-bible.ning.json`). `pipeline validate` enforces the schema. This text is pasted into every shot via `characters`.
+2. **Character bible (fail closed)** — per character: name, age, 3 fixed visual traits, outfit, optional `forbid` / refs. Set `"kind": "short-drama"` and either inline `characters` (description required) or `"character_bible": "character-bible.json"` (see `examples/character-bible.ning.json`). `validate` / `plan` / `run` refuse without it, including when someone sets `characters_on_camera` false. The description is pasted into every shot; `forbid` is appended as `CHARACTER LOCK`.
 3. **Reference sheets** — Seedream: plain background, front view + close-up per character (user approves). Save under `refs/`.
 4. **Beat sheet → shots** — 60–90 s episode ≈ 8–15 generated clips; timeline beats of 1–3 s inside 4–8 s Seedance clips (see powertokens-prompting timing-and-shots).
 5. **Route** — default drafts `seedance-mini` 720p (4–15 s, max 720p, ~$0.031/s); step up to `seedance-fast` for a closer Seedance look; dialogue-heavy finals `seedance-2.5`. Use `wan3.0-video` only when you need 2–30 s, 1080p, or Wan reference mode.

@@ -70,7 +70,7 @@ If the shot list is a product ad, set `"kind": "product-ad"` and `"product_bible
 
 ## Character bible
 
-`kind: short-drama` needs `character_bible` or inline `characters` with descriptions (`character_qc.py`). UGC with characters: same schema. See `examples/character-bible.ning.json`.
+`kind: short-drama` needs `character_bible` or inline `characters` with descriptions (`character_qc.py`). `validate` / `plan` / `run` refuse without it. `kind: ugc-ad` fails closed the same way unless `"characters_on_camera": false` and no shot puts a person on camera. Other shot lists that set `characters`, `on_camera`, or `face_cam` also refuse without a bible. Forbid lines are appended as `CHARACTER LOCK`. See `examples/character-bible.ning.json`.
 
 ## Claims
 

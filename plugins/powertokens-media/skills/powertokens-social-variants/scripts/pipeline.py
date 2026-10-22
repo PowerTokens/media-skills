@@ -112,6 +112,9 @@ def compose_prompt(spec, s):
         if c and c.get("description"):
             parts.append(c["description"].strip())
     parts.append(s.get("prompt", "").strip())
+    lock = character_qc.character_lock_suffix(spec.get("characters"), s.get("characters"))
+    if lock:
+        parts.append(lock)
     bible = get_bible(spec)
     if bible:
         # Always inject PRODUCT LOCK for product-ad (and any shot list with a bible).
@@ -1254,7 +1257,8 @@ def main():
             sp.add_argument("--require-product-bible", action="store_true",
                             help="refuse if product_bible missing (also auto when kind=product-ad)")
             sp.add_argument("--require-character-bible", action="store_true",
-                            help="refuse if character bible/inline characters missing (also auto when kind=short-drama)")
+                            help="refuse when a character is on camera without a character bible "
+                        "(auto for short-drama; auto for ugc-ad unless characters_on_camera is false)")
     r = sub.add_parser("run")
     r.add_argument("shotlist")
     r.add_argument("--approve-estimate", type=float, help="the video_est_usd from `plan`, after the user agreed")
@@ -1264,7 +1268,8 @@ def main():
     r.add_argument("--require-product-bible", action="store_true",
                    help="refuse if product_bible missing (also auto when kind=product-ad)")
     r.add_argument("--require-character-bible", action="store_true",
-                   help="refuse if character bible/inline characters missing (also auto when kind=short-drama)")
+                   help="refuse when a character is on camera without a character bible "
+                        "(auto for short-drama; auto for ugc-ad unless characters_on_camera is false)")
     r.add_argument("--vision-qc", dest="vision_qc", action="store_true", default=None,
                    help="force post-keyframe vision QC on (default: on for product-ad)")
     r.add_argument("--skip-vision-qc", action="store_true",

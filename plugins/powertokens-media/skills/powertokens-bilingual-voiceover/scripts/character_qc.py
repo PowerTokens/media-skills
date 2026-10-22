@@ -4,7 +4,16 @@
   python3 character_qc.py validate-bible bible.json
   python3 character_qc.py check-shotlist shots.json [--require]
 
-Mirrors product_qc lightly: schema + pipeline gate only (no face vision QC yet).
+Mirrors the product bible gate: schema check, then validate/plan/run refuse when a
+person is on camera without a character bible. No face vision QC yet.
+
+Fail closed:
+- kind short-drama (and aliases) always needs character_bible or inline characters
+  with description. characters_on_camera false does not waive a short drama.
+- kind ugc-ad needs the same bible unless the shot list sets
+  "characters_on_camera": false AND no shot lists characters or on_camera/face_cam.
+- Any other shot list that puts a character on a shot (characters[], on_camera,
+  face_cam, or characters_on_camera true) also refuses without a valid bible.
 """
 import argparse
 import json
@@ -136,6 +145,78 @@ def merge_into_spec_characters(spec, bible_chars):
     return dest
 
 
+def character_lock_suffix(characters, ids):
+    """Forbid lines for shots that name these characters. Descriptions are prepended separately."""
+    forbids = []
+    table = characters if isinstance(characters, dict) else {}
+    for cid in ids or []:
+        raw = table.get(cid) or {}
+        if not isinstance(raw, dict):
+            continue
+        for item in raw.get("forbid") or []:
+            text = str(item).strip()
+            if text and text not in forbids:
+                forbids.append(text)
+    if not forbids:
+        return ""
+    return "CHARACTER LOCK: " + "; ".join(forbids) + "."
+
+
+def _shot_character_ids(shot):
+    if not isinstance(shot, dict):
+        return []
+    raw = shot.get("characters") or []
+    if isinstance(raw, str):
+        raw = [raw]
+    if not isinstance(raw, list):
+        return []
+    return [str(c).strip() for c in raw if str(c).strip()]
+
+
+def shot_declares_on_camera(shot):
+    """True when this shot puts a person on camera (ids, or an explicit face flag)."""
+    if not isinstance(shot, dict):
+        return False
+    if shot.get("on_camera") is True or shot.get("face_cam") is True:
+        return True
+    return bool(_shot_character_ids(shot))
+
+
+def declares_on_camera(spec):
+    if not isinstance(spec, dict):
+        return False
+    if spec.get("characters_on_camera") is True:
+        return True
+    return any(shot_declares_on_camera(s) for s in (spec.get("shots") or []))
+
+
+def bible_required(spec, require=False):
+    """Fail closed, same idea as product-ad requiring a product bible."""
+    kind = (spec.get("kind") or "").lower() if isinstance(spec, dict) else ""
+    if require or kind in CHAR_KINDS_REQUIRE:
+        return True
+    if declares_on_camera(spec):
+        return True
+    if kind in UGC_KINDS and spec.get("characters_on_camera") is not False:
+        return True
+    return False
+
+
+def _missing_bible_error(spec):
+    kind = (spec.get("kind") or "").lower()
+    if kind in CHAR_KINDS_REQUIRE:
+        return (
+            "short-drama shot list requires character_bible or inline characters{} "
+            "with description before validate/plan/run; characters_on_camera false does not waive this"
+        )
+    return (
+        "characters are on camera but no character bible: set character_bible or inline "
+        "characters{} with description before validate/plan/run. "
+        "Hands-only UGC with no face: set \"characters_on_camera\": false and do not list "
+        "shot characters or on_camera. See powertokens-ugc-ad / powertokens-short-drama"
+    )
+
+
 def check_shotlist_characters(spec_or_path, require=False):
     """Validate character_bible / inline characters. Returns (ok, errors)."""
     if isinstance(spec_or_path, (str, Path)):
@@ -149,7 +230,6 @@ def check_shotlist_characters(spec_or_path, require=False):
         spec = spec_or_path
         base = Path(spec.get("_base") or ".")
 
-    kind = (spec.get("kind") or "").lower()
     inline = spec.get("characters") or {}
     bible_rel = spec.get("character_bible")
     errs = []
@@ -182,19 +262,13 @@ def check_shotlist_characters(spec_or_path, require=False):
         combined[c["id"]] = c
     chars = list(combined.values())
 
-    need = require or kind in CHAR_KINDS_REQUIRE
-    ugc_uses = kind in UGC_KINDS and bool(chars or bible_rel)
+    need = bible_required(spec, require=require)
 
     if need and not chars:
-        errs.append(
-            "short-drama shot list requires character_bible or inline characters{} "
-            "with description; see powertokens-short-drama"
-        )
+        errs.append(_missing_bible_error(spec))
         return False, errs
 
-    if need or ugc_uses or bible_rel:
-        if not chars and ugc_uses:
-            errs.append("ugc-ad with characters requires valid character entries")
+    if need or chars or bible_rel:
         for c in chars:
             errs.extend(validate_character(c))
 

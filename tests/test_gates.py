@@ -88,6 +88,75 @@ class CharacterQcTests(unittest.TestCase):
             spec = pipeline.load(str(d / "short-drama.json"))
             self.assertEqual(pipeline.validate(spec), [])
 
+    def test_ugc_without_bible_fails_closed(self):
+        spec = {
+            "kind": "ugc-ad",
+            "shots": [{"id": "s01", "prompt": "Hands open the box on a table."}],
+            "characters": {},
+        }
+        ok, errs = character_qc.check_shotlist_characters(spec)
+        self.assertFalse(ok)
+        self.assertTrue(any("character bible" in e for e in errs))
+
+    def test_ugc_hands_only_opt_out(self):
+        spec = {
+            "kind": "ugc-ad",
+            "characters_on_camera": False,
+            "shots": [{"id": "s01", "prompt": "Hands open the box. No face."}],
+            "characters": {},
+        }
+        ok, errs = character_qc.check_shotlist_characters(spec)
+        self.assertTrue(ok, errs)
+
+    def test_ugc_opt_out_does_not_waive_a_face_shot(self):
+        spec = {
+            "kind": "ugc-ad",
+            "characters_on_camera": False,
+            "shots": [{"id": "s01", "characters": ["ava"], "prompt": "Ava looks at the lens."}],
+            "characters": {},
+        }
+        ok, errs = character_qc.check_shotlist_characters(spec)
+        self.assertFalse(ok)
+        self.assertTrue(any("on camera" in e for e in errs))
+
+    def test_on_camera_flag_requires_bible_outside_ugc(self):
+        spec = {
+            "kind": "explainer",
+            "shots": [{"id": "s01", "on_camera": True, "prompt": "Host talks to camera."}],
+        }
+        ok, errs = character_qc.check_shotlist_characters(spec)
+        self.assertFalse(ok)
+        self.assertTrue(any("character bible" in e for e in errs))
+
+    def test_short_drama_opt_out_does_not_waive(self):
+        spec = {
+            "kind": "short-drama",
+            "characters_on_camera": False,
+            "shots": [{"id": "s01", "prompt": "Empty street."}],
+            "characters": {},
+        }
+        ok, errs = character_qc.check_shotlist_characters(spec)
+        self.assertFalse(ok)
+        self.assertTrue(any("short-drama" in e for e in errs))
+
+    def test_ugc_inline_bible_and_lock_suffix(self):
+        spec = {
+            "kind": "ugc-ad",
+            "characters": {
+                "ava": {
+                    "description": "Ava, 30, freckles, messy bun, grey hoodie.",
+                    "forbid": ["do not change the grey hoodie"],
+                }
+            },
+            "shots": [{"id": "s01", "characters": ["ava"], "prompt": "Ava looks at the lens."}],
+        }
+        ok, errs = character_qc.check_shotlist_characters(spec)
+        self.assertTrue(ok, errs)
+        text = pipeline.compose_prompt(spec, spec["shots"][0])
+        self.assertIn("freckles", text)
+        self.assertIn("CHARACTER LOCK", text)
+        self.assertIn("grey hoodie", text)
+
     def test_character_bible_file_merges(self):
         with tempfile.TemporaryDirectory() as tmp:
             d = Path(tmp)

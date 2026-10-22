@@ -13,7 +13,7 @@ Fill the bible in this order — do **not** jump to lid-only fields:
 | **1** | `category` | **商品大类** | Broad class: drinkware, footwear, bag, beauty, consumer_electronics, apparel, furniture, food_packaging, … |
 | **2** | `subtype` | **具体分型** | Concrete type inside that class: dual-lid thermos vs screw-only bottle; lace-up running shoe vs slip-on; top-zip tote vs flap backpack |
 | **3** | `immutable.parts` | **组成拆解 (BOM)** | Ordered real parts `{id, role, how, states?}` — body, openings, closures, hardware, labels, accessories, sole, screen, pump, … |
-| **4** | forbid / colors / logos / proportions / refs | **禁止乱改、颜色材质、logo、比例、参考图** | Derive forbid from part risks; then lock finish, marks, silhouette, 1–3 refs |
+| **4** | forbid / colors / logos / proportions / refs | **禁止乱改、颜色材质、logo、比例、参考图、禁止第三方品牌道具** | Derive forbid from part risks, including the default third-party brand-prop line; then lock finish, marks, silhouette, 1–3 refs |
 
 Chinese quick labels: **结构部件/状态、禁止乱改、颜色材质、logo、比例、参考图**.
 
@@ -55,9 +55,9 @@ Create **before** storyboard spend. Store as JSON next to the shot list. Schema 
 | Field | Meaning |
 |---|---|
 | **`parts`** | Canonical BOM: non-empty `[{id, role, how, states?}]`. Roles e.g. `body`, `closure`, `opening`, `hardware`, `sole`, `label`, `accessory`, `structure`. |
-| `forbid` | Non-empty string list — category-agnostic + product-specific forbidden alterations (derive from part risks) |
+| `forbid` | Non-empty string list — category-agnostic + product-specific forbidden alterations (derive from part risks). Always include: `no third-party logos, wordmarks, or brand-identifiable devices (MacBook, iPhone, etc.) unless approved` |
 | `colors` | Finish / material lock |
-| `logos` | string or `null` / `"none"` |
+| `logos` | string or `null` / `"none"` — the SKU's own mark only. Third-party logos, wordmarks, packaging, and brand-identifiable devices in frame are forbidden unless the advertised SKU is that brand or the user explicitly approved showing it |
 | `proportions` | Silhouette / geometry notes |
 
 **Aliases (read-normalized):**
@@ -86,6 +86,7 @@ From the bible, inject an explicit block into every Seedream keyframe (and i2v) 
 
 - Keep parts identical to refs; do not invent, omit, or hybridize listed parts; do not redesign critical geometry.
 - Mouth/lid/thread wording belongs only in **per-product** `how` / `forbid` text when that SKU needs it.
+- **Third-party brand props:** `constraints` always appends a lock — no third-party logos, wordmarks, packaging, or brand-identifiable devices (Apple MacBook / iPhone / logo, Nike swoosh, Starbucks cup mark, Amazon smile, Google/Microsoft hardware logos) unless the advertised SKU is that brand or the user explicitly approved showing it. Generic unbranded props only (plain silver laptop with no logo or chin text, blank phone bezel, plain mug). Same ban in VO, captions, end-cards, and finish overlays that would name the mark.
 
 Script helper: `python3 scripts/product_qc.py constraints path/to/bible.json`. **Enforced:** `pipeline.py` appends this block to every shot + keyframe prompt when `product_bible` is set (do not rely on the agent remembering).
 
@@ -106,6 +107,7 @@ After each Seedream keyframe, before i2v:
    `{ "pass": bool, "failures": ["..."], "structure_mode_seen": "...", "rubric_answers": {...}, "notes": "..." }`
    Rubric ids: `structure_matches_refs`, `no_hybrid_or_invented_parts`, `colors_finish_ok`, `logo_policy_ok`, `proportions_silhouette_ok`.
 3. Fail if structure is a hybrid not listed in `parts`, or any `forbid` is violated.
+   Fail `logo_policy_ok` if the still shows a third-party mark or brand-identifiable device (MacBook, iPhone, Apple logo, Nike swoosh, Starbucks cup mark, Amazon smile, Google/Microsoft hardware logos), or if logos violate `immutable.logos`. Generic unbranded props are OK. Do not ship — regenerate once or stop for a human. The same gate applies to clips and finish overlays before delivery.
 4. On **fail**: regenerate **once** with corrected negatives from `failures`, then re-check; if still fail → **stop for human**.
 5. On **pass**: mark keyframe `qc: pass` in state and continue.
 
@@ -143,7 +145,7 @@ Golden bibles under `tools/examples/product-bible.*.json` + offline tests for sc
 
 1. Identify **category** → **subtype** with the user.  
 2. Decompose **parts** BOM (`id` / `role` / `how` / `states?`).  
-3. Write **forbid** from part risks; fill colors, logos, proportions, refs.
+3. Write **forbid** from part risks, including `no third-party logos, wordmarks, or brand-identifiable devices (MacBook, iPhone, etc.) unless approved`; fill colors, logos, proportions, refs.
    If a part is unclear on the hero packshot, find a **part-detail** ref → tag `kind`/`part` → **unify onto the hero** before spend (body/proportions/scene locked; only that part changes).  
 4. `product_qc.py validate-bible` → OK.  
 5. Append `constraints` into every keyframe prompt.  

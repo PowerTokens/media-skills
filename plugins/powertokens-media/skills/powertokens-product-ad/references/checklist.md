@@ -6,6 +6,9 @@
 - [ ] No mood-only or brand-swappable lines; hooks encode a verified benefit in ≤ 2 s
 - [ ] Captions match VO meaning; kinetic shortening did not invent or drop facts
 - [ ] Product bible filled in order: **category → subtype → parts BOM → forbid** (+ colors, logos, proportions, 1–3 refs)
+- [ ] `immutable.forbid` includes: no third-party logos, wordmarks, or brand-identifiable devices (MacBook, iPhone, Apple logo, Nike swoosh, Starbucks cup mark, Amazon smile, Google/Microsoft hardware logos) unless the SKU is that brand or the user approved it
+- [ ] Keyframes, i2v clips, VO, captions, end-cards, and finish overlays do not show or name those third-party marks; props are generic and unbranded (plain laptop with no logo or chin text, blank phone bezel, plain mug)
+- [ ] `logo_policy_ok` is yes; a third-party mark or brand-identifiable device is a fail — regenerate or ask, do not ship
 - [ ] Shot list has `"kind": "product-ad"` and `"product_bible"`; `pipeline validate` passes
 - [ ] PRODUCT LOCK constraints present on every keyframe + i2v prompt (pipeline injects from bible)
 - [ ] Same approved product refs reused across product-visible shots; no invented hybrid parts

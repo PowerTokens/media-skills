@@ -1,10 +1,10 @@
 ---
 name: powertokens-product-ad
-description: Produce a short vertical product ad (TikTok, Reels, Shorts, paid social, 9:16, 10-30 s) from a product URL and/or product photo — extract a claim sheet, get user approval, then hook/script, storyboard, Seedream keyframes that keep the real product, image-to-video clips, voiceover, captions and an assembled MP4, through PowerTokens. Use when the user wants a product ad, promo video, e-commerce or Amazon/Shopify video, launch teaser, pastes a product link, or says "turn this product photo into a video ad".
+description: Produce a short vertical product ad (TikTok, Reels, Shorts, paid social, 9:16, 10-30 s) from a product URL and/or product photo — extract a claim sheet, get user approval, then hook/script, storyboard, Seedream keyframes that keep the real product, image-to-video clips, voiceover, captions and an assembled MP4, through PowerTokens. Third-party consumer brands are forbidden as props (no MacBook, logos, or other brand-identifiable devices) unless that brand is the SKU or the user approved it. Use when the user wants a product ad, promo video, e-commerce or Amazon/Shopify video, launch teaser, pastes a product link, or says "turn this product photo into a video ad".
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.3.8"
+  version: "0.3.9"
 ---
 
 # Product ad (URL / image → vertical ad)
@@ -52,6 +52,18 @@ Real SKUs have fixed **structure/parts** that Seedream invents wrong (wrong clos
 2. Set shot list `"kind": "product-ad"` and `"product_bible": "<file>.json"`.
 3. Append `product_qc.py constraints` text into every keyframe prompt.
 4. After each keyframe: `pipeline.py run` vision QC (default on for product-ad; `MiniMax-M3` / glm-5.x) → one retry or stop (fail-closed if vision API down unless `--skip-vision-qc`); `hero: true` pauses until `approve-hero` (or `--auto-approve-hero`).
+
+### Third-party brands as props (hard rule)
+
+Forbidden by default in keyframes, i2v clips, VO / captions / end-cards that name them, and finish overlays.
+
+- **Cover:** logos, wordmarks, packaging, and devices or products that are clearly a specific brand (Apple MacBook / iPhone / logo; Nike swoosh; Starbucks cup mark; Amazon smile; Google/Microsoft hardware logos).
+- **OK:** generic unbranded props (plain silver laptop with no logo or chin text, blank phone bezel, plain mug).
+- **Exception only when** (a) the advertised SKU is that brand, or (b) the user explicitly says they have rights or want that brand shown.
+- **Bible / prompts / rubric:** always add this to `immutable.forbid` (Seedream and i2v prompts also get it from `product_qc.py constraints`): `no third-party logos, wordmarks, or brand-identifiable devices (MacBook, iPhone, etc.) unless approved`.
+- **QC / delivery:** if a still or clip shows a third-party mark or brand-identifiable device, fail `logo_policy_ok` and regenerate or ask — do not ship. Rewrite the prop to a generic stand-in.
+
+Do not write legal-advice copy. Forbid the prop and rewrite it.
 
 Details: `powertokens-product-qc` and repo `docs/product-consistency-qc.md`.
 

@@ -134,6 +134,36 @@ class ProductQcTests(unittest.TestCase):
         self.assertIn("do not invent, omit, or hybridize parts", text)
         self.assertNotIn("do not redesign the mouth, lid, or threads", text)
 
+    def test_constraints_third_party_brand_props(self):
+        text = product_qc.constraints_block(product_qc.load_bible(BIBLE))
+        self.assertIn("Third-party brand props", text)
+        self.assertIn("MacBook", text)
+        self.assertIn("plain silver laptop", text)
+        self.assertEqual(text.lower().count("third-party logos"), 1)
+        bare = {
+            "product_name": "Desk lamp",
+            "category": "home",
+            "subtype": "task lamp",
+            "immutable": {
+                "parts": [{"id": "shade", "role": "body", "how": "conical shade as in refs"}],
+                "forbid": ["do not change the shade angle"],
+                "colors": "matte white",
+                "logos": "none",
+                "proportions": "as in refs",
+            },
+            "refs": [{"path": "lamp.jpg"}],
+        }
+        injected = product_qc.constraints_block(bare)
+        self.assertIn("MacBook", injected)
+        self.assertIn("do not change the shade angle", injected)
+        self.assertIn(product_qc.THIRD_PARTY_PROP_LOCK, injected)
+
+    def test_example_bibles_forbid_third_party_props(self):
+        for path in (BIBLE, SNEAKER, BAG):
+            forbid = " ".join(product_qc.load_bible(path)["immutable"]["forbid"]).lower()
+            self.assertIn("third-party", forbid)
+            self.assertIn("macbook", forbid)
+
     def test_vision_prompt_structure(self):
         body = product_qc.vision_messages(product_qc.load_bible(BIBLE), "kf.png", ["product.jpg"])
         self.assertEqual(body["model"], "MiniMax-M3")
@@ -144,6 +174,10 @@ class ProductQcTests(unittest.TestCase):
         self.assertIn("structure_mode_seen", payload["response_schema"])
         self.assertIn("structure_matches_refs", [r["id"] for r in payload["rubric"]])
         self.assertTrue(any("hybrid" in i.lower() for i in payload["instructions"]))
+        logo = next(r for r in payload["rubric"] if r["id"] == "logo_policy_ok")
+        self.assertIn("MacBook", logo["ask"])
+        self.assertIn("plain silver laptop", logo["ask"])
+        self.assertTrue(any("logo_policy_ok" in i and "third-party" in i.lower() for i in payload["instructions"]))
 
     def test_parse_verdict_pass_and_fail(self):
         ok = product_qc.parse_verdict(
@@ -154,6 +188,18 @@ class ProductQcTests(unittest.TestCase):
             '```json\n{"pass": true, "failures": ["hybrid part"], "structure_mode_seen": "unknown"}\n```')
         self.assertFalse(bad["pass"])
         self.assertIn("hybrid", bad["failures"][0])
+
+    def test_parse_verdict_logo_policy_no_fails(self):
+        v = product_qc.parse_verdict(
+            '{"pass": true, "failures": [], "rubric_answers": {"logo_policy_ok": "no"}}')
+        self.assertFalse(v["pass"])
+        self.assertIn("logo_policy_ok", v["failures"])
+        flagged = product_qc.parse_verdict(
+            '{"pass": true, "failures": [], "rubric_answers": {"logo_policy_ok": false}}')
+        self.assertFalse(flagged["pass"])
+        clean = product_qc.parse_verdict(
+            '{"pass": true, "failures": [], "rubric_answers": {"logo_policy_ok": "yes"}}')
+        self.assertTrue(clean["pass"])
 
     def test_parse_verdict_accepts_legacy_lid_mode_seen(self):
         v = product_qc.parse_verdict(

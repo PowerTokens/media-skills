@@ -30,7 +30,7 @@ Only use claims from a **claim sheet** built before the storyboard:
 | User brief | name, 1–3 benefits, audience, CTA, price | Primary |
 | Product URL / PDP (fetched) | title, bullets, specs, printed hold-time | Extract with quote + URL; user must approve before use |
 | Packaging / spec sheet user provided | capacity, hold-time, materials, warranty | Quote or paraphrase; keep numbers exact |
-| Visible on the packshot | logo wordmark, printed claim on label | OK if readable in refs |
+| Visible on the packshot | the advertised product's own logo wordmark, printed claim on label | OK if readable in refs. Do not name or show a third-party brand (MacBook, iPhone, Nike, Starbucks, …) unless that brand is the SKU or the user explicitly approved it |
 | Assistant invention | fake hours, awards, “#1”, reviews, competitor digs | **Forbidden** |
 
 If the brief has mood but no concrete benefit → **stop and ask** for 1–3 true selling points. Do not fill gaps with lifestyle poetry.
@@ -58,6 +58,7 @@ Reject a line if **any** is true:
 4. **Mismatch** — caption promises a demo the shot does not show, or disagrees with VO / end-card.
 5. **Interchangeable** — swap brand name and the line still works for a competitor with no edit.
 6. **Not an original claim** — song lyrics, a brand slogan copied verbatim, a celebrity endorsement, or a long copyrighted quote. MiniMax speech blocks these (`error_type: CONTENT_POLICY`) and one blocked line used to drop the whole EN voiceover. Write the claim in your own words from the approved sheet.
+7. **Third-party brand prop or name** — VO, caption, or end-card names a recognizable third-party trademark or product (MacBook, iPhone, Nike swoosh, Starbucks, Amazon smile, Google/Microsoft hardware) unless that brand is the advertised SKU or the user explicitly asked to show it. Drop the name or rewrite to a generic prop.
 
 ## Write loop (before shot list lock)
 

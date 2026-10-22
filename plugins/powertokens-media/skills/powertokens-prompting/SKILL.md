@@ -41,5 +41,6 @@ Core rules:
 ## Product / character identity
 
 - Physical SKUs: use `powertokens-product-qc` bible (category → subtype → parts) — do not rely on "label unchanged" alone.
+- Product ads: no third-party logos, wordmarks, or brand-identifiable devices as props (MacBook, iPhone, Apple logo, Nike swoosh, Starbucks cup mark, …) unless that brand is the SKU or the user approved it. Fail `logo_policy_ok` and regenerate with a generic unbranded prop.
 - Characters (drama / UGC): identical `characters.<id>.description` + `ref_image` every shot; see short-drama consistency.
 - Seedance first-frame i2v: never send `ratio` (see `references/seedance.md` / pitfalls).

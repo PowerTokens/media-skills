@@ -33,7 +33,8 @@
       "do not replace the top zipper with a flap, buckle, or drawstring",
       "do not invent exterior pockets, logos patches, or straps not in refs",
       "do not change handle length/attachment points or add a shoulder strap",
-      "do not redesign the base silhouette or panel count"
+      "do not redesign the base silhouette or panel count",
+      "no third-party logos, wordmarks, or brand-identifiable devices (MacBook, iPhone, Apple logo, Nike swoosh, Starbucks cup mark, Amazon smile, Google/Microsoft hardware logos) unless the advertised SKU is that brand or the user explicitly approved it"
     ],
     "colors": "Shell and lining colors as in refs; hardware finish locked.",
     "logos": "none — do not invent brand patches",

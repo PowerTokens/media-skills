@@ -37,6 +37,7 @@ Draft clips use Seedance 2.0 Mini (`seedance-mini`): generate each at 4–5 s (m
 - Use the real packshot as Seedream reference: "keep product shape, label and colors exactly as the reference".
 - Prefer image-to-video from the keyframe over text-to-video for any shot where the product is readable.
 - Small, slow motions keep labels stable; fast spins redraw them.
+- **Third-party brand props are forbidden** in keyframes, i2v clips, VO / captions / end-cards, and finish overlays. No logos, wordmarks, packaging, or brand-identifiable devices (Apple MacBook / iPhone / logo, Nike swoosh, Starbucks cup mark, Amazon smile, Google/Microsoft hardware logos). Use a generic stand-in (plain silver laptop with no logo or chin text, blank phone bezel, plain mug). Exception only when the advertised SKU is that brand, or the user explicitly says they have rights or want that brand shown. Put `no third-party logos, wordmarks, or brand-identifiable devices (MacBook, iPhone, etc.) unless approved` in `immutable.forbid`. If a still or clip shows one, fail `logo_policy_ok` and regenerate or ask — do not ship.
 
 ## Audio
 - Clips with `audio: false` when VO carries the ad; set `assembly.clip_audio_volume` for ambience.

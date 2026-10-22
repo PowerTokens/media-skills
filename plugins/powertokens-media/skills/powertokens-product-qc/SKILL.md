@@ -1,10 +1,10 @@
 ---
 name: powertokens-product-qc
-description: Product-consistency QC for PowerTokens product ads — generic product bible (category → subtype → parts BOM), prompt hard constraints, pipeline pre-flight bible gate, post-keyframe vision rubric (MiniMax-M3 or glm-5.x via chat), optional human approve before i2v. Use for any physical SKU (bottle, bag, sneaker, device, cosmetics, …), product consistency, product bible, 产品质检, 产品一致性, or lock sheet — not thermos-only.
+description: Product-consistency QC for PowerTokens product ads — generic product bible (category → subtype → parts BOM), prompt hard constraints, pipeline pre-flight bible gate, post-keyframe vision rubric (MiniMax-M3 or glm-5.x via chat), optional human approve before i2v. Third-party brand props fail logo_policy_ok (MacBook, logos, other brand-identifiable devices) unless that brand is the SKU or the user approved it. Use for any physical SKU (bottle, bag, sneaker, device, cosmetics, …), product consistency, product bible, 产品质检, 产品一致性, or lock sheet — not thermos-only.
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.3.1"
+  version: "0.3.2"
 ---
 
 # Product consistency QC
@@ -39,7 +39,7 @@ Do **not** jump to lid-specific fields. Always:
 1. **Category（商品大类）** — e.g. drinkware, footwear, bag, beauty, consumer_electronics.
 2. **Subtype（具体分型）** — e.g. dual-lid thermos, lace-up running shoe, top-zip tote.
 3. **Parts BOM（组成拆解）** — decompose into `immutable.parts`: `{id, role, how, states?}` for body, openings, closures, hardware, labels, accessories, etc.
-4. **Forbid / finish** — write `forbid` from part risks; then colors, logos, proportions, 1–5 refs (hero + optional part-detail).
+4. **Forbid / finish** — write `forbid` from part risks; then colors, logos, proportions, 1–5 refs (hero + optional part-detail). Always include this line in `forbid` (props around the SKU, not a legal note): `no third-party logos, wordmarks, or brand-identifiable devices (MacBook, iPhone, etc.) unless approved`. `constraints` repeats it on every Seedream / i2v prompt.
 5. **Part-detail refs → unify** — if a part is unclear on the hero packshot, find a part-detail image, tag `kind: part_detail` + `part: <id>`, then **unify onto the hero product** (body/proportions/scene stay; only that part changes). Never regenerate from the part crop alone.
 6. **Validate**:
 
@@ -76,6 +76,8 @@ python3 scripts/product_qc.py parse-verdict '{"pass":false,"failures":["hybrid p
 ```
 
 On fail: one regenerate with corrected negatives from `failures`, re-check; still fail → stop for human. On pass: optional human OK for hero frames → i2v.
+
+`logo_policy_ok` is **no** when a still shows a third-party logo, wordmark, packaging, or brand-identifiable device (Apple MacBook / iPhone / logo, Nike swoosh, Starbucks cup mark, Amazon smile, Google/Microsoft hardware logos), unless the advertised SKU is that brand or the user explicitly approved it. Generic unbranded props pass (plain silver laptop with no logo or chin text, blank phone bezel, plain mug). A fail here is the same gate as any other rubric fail: regenerate or ask — do not ship. Apply the same check to clips and finish overlays before delivery.
 
 10. **Shot-to-shot** — reuse the same bible refs; compare structure modes / part states across keyframes before assembly.
 

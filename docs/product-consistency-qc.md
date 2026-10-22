@@ -24,9 +24,10 @@ Chinese quick labels: **结构部件/状态、禁止乱改、颜色材质、logo
 | **P0** | **Product bible / lock sheet** (category → subtype → parts) before any paid gen | Free | Always for product-ad |
 | **P0** | **Prompt hard constraints** from the bible (forbid wrong / hybrid parts) | Free | Every keyframe + i2v prompt |
 | **P1** | **Pre-flight gate** in `pipeline plan/run`: refuse if bible missing | Free | `kind: product-ad` or `--require-product-bible` |
-| **P1** | **Post-keyframe vision check** (cheap chat+vision via PT) vs bible + refs | Low (1 chat call / keyframe) | After each Seedream keyframe |
-| **P2** | **Human approve** hero / packshot frames before i2v | Free (time) | Optional; default on for hero shots |
-| **P2** | **Shot-to-shot lock**: same refs + compare structure modes across keyframes | Free–low | Multi-shot ads |
+| **P1** | **Post-keyframe vision check** (cheap chat+vision via PT) vs bible + refs | Low (1 chat call / keyframe) | After each Seedream keyframe, before any i2v |
+| **P1** | **Keyframe batch gate** — no i2v until every product-ad keyframe is `qc: pass`, then one parallel video batch. A fail retries that still only; a second fail stops in the keyframe phase and reports shot + why | Free (avoids wasted video) | `kind: product-ad` default |
+| **P2** | **Human approve** `hero: true` frames before that shot's i2v | Free (time) | Optional for the full strip (off by default); on for `hero: true` |
+| **P2** | **Shot-to-shot lock**: same refs + compare structure modes across keyframes, then one i2v batch | Free–low | Multi-shot ads |
 | **P3** | **Eval fixtures** (golden bibles per category + offline schema tests) | Free | CI / offline |
 
 ## 1. Product bible / lock sheet（产品圣经）
@@ -100,16 +101,18 @@ For product-ad pipelines:
 
 ## 4. Post-keyframe vision check（生成后视觉核对）
 
-After each Seedream keyframe, before i2v:
+After the Seedream keyframes, and before any i2v:
 
 1. Call a **cheap multimodal chat** model on PowerTokens (`POST /v1/chat/completions`) with: bible JSON summary + approved ref image(s) + the new keyframe.
 2. Ask for **structured JSON only**:
    `{ "pass": bool, "failures": ["..."], "structure_mode_seen": "...", "rubric_answers": {...}, "notes": "..." }`
    Rubric ids: `structure_matches_refs`, `no_hybrid_or_invented_parts`, `colors_finish_ok`, `logo_policy_ok`, `proportions_silhouette_ok`.
 3. Fail if structure is a hybrid not listed in `parts`, or any `forbid` is violated.
-   Fail `logo_policy_ok` if the still shows a third-party mark or brand-identifiable device (MacBook, iPhone, Apple logo, Nike swoosh, Starbucks cup mark, Amazon smile, Google/Microsoft hardware logos), or if logos violate `immutable.logos`. Generic unbranded props are OK. Do not ship — regenerate once or stop for a human. The same gate applies to clips and finish overlays before delivery.
-4. On **fail**: regenerate **once** with corrected negatives from `failures`, then re-check; if still fail → **stop for human**.
-5. On **pass**: mark keyframe `qc: pass` in state and continue.
+   Fail `logo_policy_ok` if the still shows a third-party mark or brand-identifiable device (MacBook, iPhone, Apple logo, Nike swoosh, Starbucks cup mark, Amazon smile, Google/Microsoft hardware logos), or if logos violate `immutable.logos`. Generic unbranded props are OK. Do not ship. The same gate applies to clips and finish overlays before delivery.
+4. On **fail**: regenerate **that keyframe only** (one retry) with corrected negatives from `failures`, then re-check. Do not start i2v for siblings that already passed.
+5. If the retry still fails: **stop in the keyframe phase**. Report which shots and why (`failures`, plus structure / logo rubric hits such as hybrid structure or a third-party logo). Mark `qc: fail`. Do **not** send the failed still, or any sibling, to video.
+6. On **pass**: mark keyframe `qc: pass` in state. Wait until every shot that needs a keyframe has passed, then continue to the i2v batch.
+7. Vision API / multimodal down: **fail closed** for product-ad (no i2v) unless `--skip-vision-qc`.
 
 Legacy verdict field `lid_mode_seen` is accepted and mapped to `structure_mode_seen`.
 
@@ -128,13 +131,19 @@ Helper: `python3 scripts/product_qc.py vision-prompt bible.json --keyframe out.p
 
 ## 5. Optional human approve gate（人工过英雄帧）
 
-For shots tagged `"hero": true` or the first packshot keyframe: after vision pass (or instead of it), pause and show the still to the user. Only then submit i2v.
+Human review of the **full still strip is off by default**. Do not force a picker every run.
+
+- Shots tagged `"hero": true`: after machine QC pass, pause that shot and show the still. `approve-hero` (or `--auto-approve-hero` for CI) clears it. This does not review the whole strip.
+- If the user asks to review the 3–4 preview stills before video, show them and wait. That request is the only reason to pause the full strip.
+
+Machine QC remains the hard gate either way. A hero pause does not replace it, and a failed still never goes to video while a human is looking at a sibling.
 
 ## 6. Shot-to-shot consistency（镜间一致）
 
 - Reuse the **same** `ref_images` / bible refs on every product-visible keyframe.
 - Prefer i2v from the **QC-passed** keyframe rather than t2v.
-- After all keyframes: compare structure modes / part states across frames; flag if one frame invents a part not in `parts`.
+- **Hard order for product-ad:** unify the preview keyframes (usually 3–4) → every one `qc: pass` → then **one** parallel i2v batch (`run --parallel`). Do not render s01 video while s03 keyframe QC is still open. If any still fails, retry that still only.
+- After all keyframes: compare structure modes / part states across frames; flag if one frame invents a part not in `parts` or picks up a third-party logo. The batch gate's `qc_gate.report` is that list (shot + why).
 - Optional: pass previous approved keyframe as an extra ref for later shots (identity lock).
 
 ## 7. Eval fixtures（评测夹具）
@@ -150,18 +159,21 @@ Golden bibles under `tools/examples/product-bible.*.json` + offline tests for sc
 4. `product_qc.py validate-bible` → OK.  
 5. Append `constraints` into every keyframe prompt.  
 6. `pipeline validate` (bible gate) → `plan` → user approves $ → `run`.  
-7. After each keyframe: vision check → one retry or human stop.  
-8. Hero frames: human OK → i2v.  
-9. Deliver only QC-passed clips.
+7. Generate the preview keyframes (usually 3–4). Machine vision QC each one.  
+8. On fail: retry **that still only**. If it still fails, stop in the keyframe phase and report shot + why (structure, third-party logo, …). Do not start i2v for any shot. Vision API down: fail closed unless `--skip-vision-qc`.  
+9. When every required keyframe is `qc: pass`, submit i2v in one parallel batch. Human still-strip review stays off unless the user asks; `hero: true` still uses `approve-hero`.  
+10. Deliver only QC-passed clips.
 
 See skill `powertokens-product-qc` and section in `powertokens-product-ad`.
 
 ## Pipeline wiring (v0.3)
 
-`pipeline.py run` now executes vision QC after Seedream keyframes when a product bible is present (default on for `kind: product-ad`):
+`pipeline.py run` executes vision QC after Seedream keyframes when a product bible is present (default on for `kind: product-ad`) and **holds every i2v submit** until that gate opens:
 
-- One regenerate with augmented negatives on fail; second fail → shot `failed`, no i2v.
-- Vision API / multimodal unavailable → **fail-closed** for product-ad unless `--skip-vision-qc`.
-- `"hero": true` → write `hero_pending.json`, pause i2v until `approve-hero` or `--auto-approve-hero`.
+- Keyframe phase first: every still is generated and QC'd. One regenerate of the **failed still only** on fail. Sibling keyframes keep running; their video does not start.
+- Second fail → stop in the keyframe phase. Output `qc_gate.report` lists each blocked shot, whether the one retry already ran, and why (QC `failures`, structure mode, logo / structure rubric). `qc: fail` stills are not sent to video. Passed stills stay on disk with no sibling i2v submitted.
+- Vision API / multimodal unavailable → **fail-closed** for product-ad unless `--skip-vision-qc` (that flag also disables the batch gate).
+- When every required keyframe is `qc: pass`, i2v is submitted together (`--parallel`).
+- `"hero": true` → write `hero_pending.json` and pause **that** shot until `approve-hero` or `--auto-approve-hero`. The full strip is not a default human pause.
 
 Live multimodal smoke against MiniMax-M3 / GLM is **not** required for offline CI; confirm separately before relying on auto-pass.

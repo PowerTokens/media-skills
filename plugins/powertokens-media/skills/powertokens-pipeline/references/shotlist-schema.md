@@ -49,10 +49,10 @@ State: `<workdir>/state.json` (task ids, outputs). Plan: `<workdir>/plan.json`.
 
 - `kind: product-ad` (or `--require-product-bible`) makes `validate` / `plan` / `run` refuse without a valid bible.
 - When a bible is present, `pipeline.py` **auto-appends** `product_qc.constraints_block` to every shot prompt and Seedream keyframe prompt, and merges existing bible `refs` into **Seedream keyframe** refs only (not Wan/Kling i2v — first-frame + constraints carry the lock).
-- **Vision QC (wired):** after each Seedream keyframe, `run` calls chat vision vs the bible (default **on** for product-ad). One regenerate on fail; still fail → shot failed, no i2v. API unavailable → **fail-closed** for product-ad unless `--skip-vision-qc`.
-- Per-shot `"hero": true` — after QC pass, writes `hero_pending.json` and **pauses i2v** until `pipeline.py approve-hero <shotlist> <shot_id>` (or `--auto-approve-hero` for CI).
+- **Vision QC + batch gate (wired, default on for product-ad):** `run` generates every Seedream keyframe and requires machine QC `pass` before it submits **any** i2v/video. One regenerate of the failed still only; a second fail stops in the keyframe phase (`qc_gate.report` lists the shot and why: structure, third-party logo, hybrid part, …). Failed stills are not sent to video. Sibling shots that already passed wait. After every required keyframe passes, i2v goes out as one `--parallel` batch. Vision API unavailable → **fail-closed** unless `--skip-vision-qc` (also disables the batch gate).
+- Per-shot `"hero": true` — after the batch QC gate is open, writes `hero_pending.json` and **pauses that shot's i2v** until `pipeline.py approve-hero <shotlist> <shot_id>` (or `--auto-approve-hero` for CI). The full still strip is not a required human pause.
 
-Flags on `run`: `--vision-qc` · `--skip-vision-qc` · `--auto-approve-hero`.
+Flags on `run`: `--vision-qc` · `--skip-vision-qc` · `--auto-approve-hero` · `--parallel`.
 
 ## Character bible (short-drama / UGC)
 

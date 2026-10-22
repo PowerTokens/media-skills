@@ -4,7 +4,7 @@ description: Product-consistency QC for PowerTokens product ads — generic prod
 license: MIT
 metadata:
   author: PowerTokens
-  version: "0.3.2"
+  version: "0.3.3"
 ---
 
 # Product consistency QC
@@ -75,11 +75,11 @@ Send that body to `POST /v1/chat/completions`. Parse:
 python3 scripts/product_qc.py parse-verdict '{"pass":false,"failures":["hybrid part"]}'
 ```
 
-On fail: one regenerate with corrected negatives from `failures`, re-check; still fail → stop for human. On pass: optional human OK for hero frames → i2v.
+On fail: regenerate **that keyframe only** (one retry) with corrected negatives from `failures`, then re-check. Do not start i2v for siblings that already passed. If the retry still fails, stop in the keyframe phase: `pipeline.py run` reports the shot and why (structure, third-party logo, hybrid part, rubric). Failed stills are not sent to video. Vision API down fails closed unless `--skip-vision-qc`.
 
-`logo_policy_ok` is **no** when a still shows a third-party logo, wordmark, packaging, or brand-identifiable device (Apple MacBook / iPhone / logo, Nike swoosh, Starbucks cup mark, Amazon smile, Google/Microsoft hardware logos), unless the advertised SKU is that brand or the user explicitly approved it. Generic unbranded props pass (plain silver laptop with no logo or chin text, blank phone bezel, plain mug). A fail here is the same gate as any other rubric fail: regenerate or ask — do not ship. Apply the same check to clips and finish overlays before delivery.
+`logo_policy_ok` is **no** when a still shows a third-party logo, wordmark, packaging, or brand-identifiable device (Apple MacBook / iPhone / logo, Nike swoosh, Starbucks cup mark, Amazon smile, Google/Microsoft hardware logos), unless the advertised SKU is that brand or the user explicitly approved it. Generic unbranded props pass (plain silver laptop with no logo or chin text, blank phone bezel, plain mug). A fail here is the same gate as any other rubric fail: regenerate that keyframe only, or ask — do not ship. Apply the same check to clips and finish overlays before delivery.
 
-10. **Shot-to-shot** — reuse the same bible refs; compare structure modes / part states across keyframes before assembly.
+10. **Then one i2v batch** — only after every required keyframe is `qc: pass`, `run --parallel` submits video together. Human review of the full still strip is off by default; `"hero": true` still uses `approve-hero`. Reuse the same bible refs; compare structure modes / part states across keyframes before assembly.
 
 Avoid `kling-video-o1*`. Never promote deepseek-v4-* chat/image ids. Do not invent product claims. Vision support for chat model ids is **not fully verified** in this repo — if images are rejected, keep bible + constraints + human approve.
 
